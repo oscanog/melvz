@@ -1,16 +1,17 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 import { emailAtom, isEmailModalVisibleAtom, store } from "../store";
 import { opacityTrickleDown } from "../utils";
-import makeIcon from "./Icon";
+import makeIcon, { type ImageData } from "./Icon";
 
 export default function makeEmailIcon(
-  k,
-  parent,
-  posVec2,
-  imageData,
-  subtitle,
-  email
-) {
+  k: KAPLAYCtx,
+  parent: GameObj,
+  posVec2: Vec2,
+  imageData: ImageData,
+  subtitle: string,
+  email: string
+): GameObj {
   const [emailIcon, subtitleText] = makeIcon(
     k,
     parent,

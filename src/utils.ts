@@ -1,9 +1,11 @@
-export async function makeAppear(k, gameObj) {
+import type { KAPLAYCtx, GameObj } from 'kaplay';
+
+export async function makeAppear(k: KAPLAYCtx, gameObj: GameObj): Promise<void> {
   await k.tween(
     gameObj.opacity,
     1,
     0.5,
-    (val) => {
+    (val: number) => {
       gameObj.opacity = val;
       for (const child of gameObj.children) {
         child.opacity = gameObj.opacity;
@@ -19,10 +21,11 @@ export async function makeAppear(k, gameObj) {
 // It becomes tricky to change the opacity of indirect children.
 // This function makes sure the parent opacity's trickle down to indirect
 // children.
-export function opacityTrickleDown(parent, indirectChildren) {
-  parent.opacityTrickleDown = parent.onUpdate(() => {
+export function opacityTrickleDown(parent: GameObj, indirectChildren: GameObj[]): void {
+  const handler = parent.onUpdate(() => {
     for (const indirectChild of indirectChildren) {
       indirectChild.opacity = parent.opacity;
     }
   });
+  parent.opacityTrickleDown = handler;
 }

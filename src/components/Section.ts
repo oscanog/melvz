@@ -1,6 +1,12 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 
-export default function makeSection(k, posVec2, sectionName, onCollide = null) {
+export default function makeSection(
+  k: KAPLAYCtx,
+  posVec2: Vec2,
+  sectionName: string,
+  onCollide?: (section: GameObj) => void
+): GameObj {
   const section = k.add([
     k.rect(200, 200, { radius: 10 }),
     k.anchor("center"),
@@ -20,7 +26,7 @@ export default function makeSection(k, posVec2, sectionName, onCollide = null) {
   if (onCollide) {
     const onCollideHandler = section.onCollide("player", () => {
       onCollide(section);
-      onCollideHandler.cancel();
+      (onCollideHandler as unknown as { cancel(): void }).cancel();
     });
   }
 

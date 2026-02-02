@@ -1,6 +1,19 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 
-export default function makeIcon(k, parent, posVec2, imageData, subtitle) {
+export interface ImageData {
+  name: string;
+  width: number;
+  height: number;
+}
+
+export default function makeIcon(
+  k: KAPLAYCtx,
+  parent: GameObj,
+  posVec2: Vec2,
+  imageData: ImageData,
+  subtitle: string
+): [GameObj, GameObj] {
   const icon = parent.add([
     k.sprite(imageData.name, {
       width: imageData.width,

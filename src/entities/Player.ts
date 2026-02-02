@@ -1,3 +1,4 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { DIAGONAL_FACTOR } from "../constants";
 import {
   isEmailModalVisibleAtom,
@@ -6,7 +7,18 @@ import {
   store,
 } from "../store";
 
-export default function makePlayer(k, posVec2, speed) {
+interface PlayerData {
+  direction: Vec2;
+  directionName: string;
+}
+
+type PlayerGameObj = GameObj & PlayerData;
+
+export default function makePlayer(
+  k: KAPLAYCtx,
+  posVec2: Vec2,
+  speed: number
+): PlayerGameObj {
   const player = k.add([
     k.sprite("player", { anim: "walk-down" }),
     k.scale(8),
@@ -19,10 +31,10 @@ export default function makePlayer(k, posVec2, speed) {
       direction: k.vec2(0, 0),
       directionName: "walk-down",
     },
-  ]);
+  ]) as PlayerGameObj;
 
   let isMouseDown = false;
-  const game = document.getElementById("game");
+  const game = document.getElementById("game") as HTMLCanvasElement;
   game.addEventListener("focusout", () => {
     isMouseDown = false;
   });

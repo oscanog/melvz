@@ -1,12 +1,20 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 import {
   isProjectModalVisibleAtom,
   chosenProjectDataAtom,
   store,
+  type ProjectData,
 } from "../store";
 import { opacityTrickleDown } from "../utils";
 
-export default function makeProjectCard(k, parent, posVec2, data, thumbnail) {
+export default function makeProjectCard(
+  k: KAPLAYCtx,
+  parent: GameObj,
+  posVec2: Vec2,
+  data: ProjectData,
+  thumbnail: string
+): GameObj {
   const card = parent.add([
     k.anchor("center"),
     k.pos(posVec2),

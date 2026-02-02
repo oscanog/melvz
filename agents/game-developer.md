@@ -24,7 +24,7 @@ The Game Developer owns all **Kaplay game engine** code, handling game logic, pl
 - **Language:** TypeScript 5.9.3
 - **State:** Jotai atoms for React-Game bridge
 
-> **Migration Note:** See [TYPESCRIPT_MIGRATION_PLAN.md](./TYPESCRIPT_MIGRATION_PLAN.md) for detailed migration guide from JS to TS.
+> **Note:** Migration from JavaScript to TypeScript is **complete**!
 
 ## Key Files
 

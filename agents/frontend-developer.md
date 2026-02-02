@@ -27,7 +27,7 @@ The Frontend Developer owns all **React components**, UI overlays, styling, and 
 - **Styling:** CSS (style.css)
 - **Language:** TypeScript 5.9.3
 
-> **Migration Note:** See [TYPESCRIPT_MIGRATION_PLAN.md](./TYPESCRIPT_MIGRATION_PLAN.md) for detailed migration guide from JS to TS.
+> **Note:** Migration from JavaScript to TypeScript is **complete**!
 
 ## Key Files
 

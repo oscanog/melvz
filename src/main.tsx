@@ -5,7 +5,7 @@ import { Provider } from "jotai";
 import { store } from "./store";
 import initGame from "./initGame";
 
-const ui = document.getElementById("ui");
+const ui = document.getElementById("ui") as HTMLElement;
 const root = createRoot(ui);
 root.render(
   <StrictMode>

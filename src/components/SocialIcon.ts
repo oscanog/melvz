@@ -1,3 +1,4 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 import {
   isSocialModalVisibleAtom,
@@ -6,17 +7,17 @@ import {
   store,
 } from "../store";
 import { opacityTrickleDown } from "../utils";
-import makeIcon from "./Icon";
+import makeIcon, { type ImageData } from "./Icon";
 
 export default function makeSocialIcon(
-  k,
-  parent,
-  posVec2,
-  imageData,
-  subtitle,
-  link,
-  description
-) {
+  k: KAPLAYCtx,
+  parent: GameObj,
+  posVec2: Vec2,
+  imageData: ImageData,
+  subtitle: string,
+  link: string,
+  description: string
+): GameObj {
   const [socialIcon, subtitleText] = makeIcon(
     k,
     parent,

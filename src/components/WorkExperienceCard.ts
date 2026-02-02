@@ -1,13 +1,26 @@
+import type { KAPLAYCtx, GameObj, Vec2 } from "kaplay";
 import { PALETTE } from "../constants";
 import { opacityTrickleDown } from "../utils";
 
+interface CompanyData {
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface RoleData {
+  title: string;
+  company: CompanyData;
+  description: string;
+}
+
 export default function makeWorkExperienceCard(
-  k,
-  parent,
-  posVec2,
-  height,
-  roleData
-) {
+  k: KAPLAYCtx,
+  parent: GameObj,
+  posVec2: Vec2,
+  height: number,
+  roleData: RoleData
+): GameObj {
   const card = parent.add([
     k.rect(800, height, { radius: 8 }),
     k.area(),
@@ -26,7 +39,6 @@ export default function makeWorkExperienceCard(
   ]);
 
   const history = card.add([
-    k.text("hello world!"),
     k.text(
       `${roleData.company.name} -- ${roleData.company.startDate}-${roleData.company.endDate}`,
       {

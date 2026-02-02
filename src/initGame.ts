@@ -9,19 +9,78 @@ import makeWorkExperienceCard from "./components/WorkExperienceCard";
 import makeEmailIcon from "./components/EmailIcon";
 import makeProjectCard from "./components/ProjectCard";
 import { cameraZoomValueAtom, store } from "./store";
+import type { KAPLAYCtx } from "kaplay";
 
-export default async function initGame() {
-  const generalData = await (await fetch("./configs/generalData.json")).json();
-  const skillsData = await (await fetch("./configs/skillsData.json")).json();
-  const socialsData = await (await fetch("./configs/socialsData.json")).json();
-  const experiencesData = await (
+// JSON Data Interfaces
+interface GeneralData {
+  section1Name: string;
+  section2Name: string;
+  section3Name: string;
+  section4Name: string;
+  header: {
+    title: string;
+    subtitle: string;
+  };
+}
+
+interface SocialData {
+  name: string;
+  logoData: {
+    name: string;
+    width: number;
+    height: number;
+  };
+  pos: { x: number; y: number };
+  link?: string;
+  description?: string;
+  address?: string;
+}
+
+interface SkillData {
+  name: string;
+  logoData: {
+    name: string;
+    width: number;
+    height: number;
+  };
+  pos: { x: number; y: number };
+}
+
+interface ExperienceData {
+  cardHeight: number;
+  pos: { x: number; y: number };
+  roleData: {
+    title: string;
+    company: {
+      name: string;
+      startDate: string;
+      endDate: string;
+    };
+    description: string;
+  };
+}
+
+interface ProjectData {
+  thumbnail: string;
+  pos: { x: number; y: number };
+  data: {
+    title: string;
+    links: { id: number; name: string; link: string }[];
+  };
+}
+
+export default async function initGame(): Promise<void> {
+  const generalData: GeneralData = await (await fetch("./configs/generalData.json")).json();
+  const skillsData: SkillData[] = await (await fetch("./configs/skillsData.json")).json();
+  const socialsData: SocialData[] = await (await fetch("./configs/socialsData.json")).json();
+  const experiencesData: ExperienceData[] = await (
     await fetch("./configs/experiencesData.json")
   ).json();
-  const projectsData = await (
+  const projectsData: ProjectData[] = await (
     await fetch("./configs/projectsData.json")
   ).json();
 
-  const k = makeKaplayCtx();
+  const k: KAPLAYCtx = makeKaplayCtx();
   k.loadSprite("player", "./sprites/player.png", {
     sliceX: 4,
     sliceY: 8,
@@ -69,17 +128,19 @@ export default async function initGame() {
   const setInitCamZoomValue = () => {
     if (k.width() < 1000) {
       k.camScale(k.vec2(0.5));
-      store.set(cameraZoomValueAtom, 0.5);
+      store.set(cameraZoomValueAtom, { value: 0.5 });
       return;
     }
     k.camScale(k.vec2(0.8));
-    store.set(cameraZoomValueAtom, 0.8);
+    store.set(cameraZoomValueAtom, { value: 0.8 });
   };
   setInitCamZoomValue();
 
   k.onUpdate(() => {
     const cameraZoomValue = store.get(cameraZoomValueAtom);
-    if (cameraZoomValue !== k.camScale().x) k.camScale(k.vec2(cameraZoomValue));
+    if (cameraZoomValue.value !== k.camScale().x) {
+      k.camScale(k.vec2(cameraZoomValue.value));
+    }
   });
 
   const tiledBackground = k.add([
@@ -99,7 +160,7 @@ export default async function initGame() {
   tiledBackground.onUpdate(() => {
     tiledBackground.width = k.width();
     tiledBackground.height = k.height();
-    tiledBackground.uniform.u_aspect = k.width() / k.height();
+    tiledBackground.uniform!.u_aspect = k.width() / k.height();
   });
 
   makeSection(
@@ -136,7 +197,7 @@ export default async function initGame() {
             k.vec2(socialData.pos.x, socialData.pos.y),
             socialData.logoData,
             socialData.name,
-            socialData.address
+            socialData.address!
           );
           continue;
         }
@@ -147,8 +208,8 @@ export default async function initGame() {
           k.vec2(socialData.pos.x, socialData.pos.y),
           socialData.logoData,
           socialData.name,
-          socialData.link,
-          socialData.description
+          socialData.link!,
+          socialData.description!
         );
       }
 
