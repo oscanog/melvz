@@ -2,7 +2,7 @@
 
 This is a developer portfolio website made as a 2D game with React, TypeScript, and the Kaplay library.
 
-Live demo : https://jslegenddev.github.io/new-2d-portfolio/
+Live demo : https://mviner000.github.io/mviner000/
 
 Tutorial explaining how to build this : (TBD)
 

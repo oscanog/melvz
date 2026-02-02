@@ -3,14 +3,14 @@
     "pos": { "x": 300, "y": 250 },
     "name": "GitHub",
     "description": "GitHub is where I host my projects.",
-    "link": "https://github.com/jslegenddev",
+    "link": "https://github.com/mviner000",
     "logoData": { "name": "github-logo", "width": 228.6, "height": 179.5 }
   },
   {
     "pos": { "x": 500, "y": 250 },
     "name": "YouTube",
     "description": "I make JavaScript/TypeScript game dev courses there.",
-    "link": "https://youtube.com/@jslegenddev",
+    "link": "https://youtube.com/@mviner000",
     "logoData": {
       "name": "youtube-logo",
       "width": 160,
@@ -21,7 +21,7 @@
     "pos": { "x": 700, "y": 250 },
     "name": "X",
     "description": "Here is my X/Twitter, I don't really use it much.",
-    "link": "https://x.com/jslegenddev",
+    "link": "https://x.com/mviner000",
     "logoData": {
       "name": "x-logo",
       "width": 128,
@@ -32,7 +32,7 @@
     "pos": { "x": 900, "y": 250 },
     "name": "Substack",
     "description": "I make written JavaScript/TypeScript game dev tutorials there.",
-    "link": "https://jslegenddev.substack.com/",
+    "link": "https://mviner000.substack.com/",
     "logoData": {
       "name": "substack-logo",
       "width": 128,
@@ -42,7 +42,7 @@
   {
     "pos": { "x": 1100, "y": 250 },
     "name": "Email",
-    "address": "jslegend@protonmail.com",
+    "address": "melvin.nogoy@example.com",
     "logoData": {
       "name": "email-logo",
       "width": 128,

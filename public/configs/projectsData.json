@@ -8,12 +8,12 @@
         {
           "id": 0,
           "name": "Live Demo",
-          "link": "https://jslegend.itch.io/sonic-ring-run"
+          "link": "https://mviner000.itch.io/sonic-ring-run"
         },
         {
           "id": 1,
           "name": "Source Code",
-          "link": "https://github.com/JSLegendDev/sonic-runner"
+          "link": "https://github.com/mviner000/sonic-runner"
         }
       ]
     }
@@ -27,12 +27,12 @@
         {
           "id": 0,
           "name": "Live Demo",
-          "link": "https://jslegend.itch.io/kirby-like-platformer-asset-pack"
+          "link": "https://mviner000.itch.io/kirby-like-platformer-asset-pack"
         },
         {
           "id": 1,
           "name": "Source Code",
-          "link": "https://github.com/JSLegendDev/Kirby-like-ts"
+          "link": "https://github.com/mviner000/Kirby-like-ts"
         }
       ]
     }
@@ -46,12 +46,12 @@
         {
           "id": 0,
           "name": "Live Demo",
-          "link": "https://jslegend.itch.io/mario-like-in-javascript"
+          "link": "https://mviner000.itch.io/mario-like-in-javascript"
         },
         {
           "id": 1,
           "name": "Source Code",
-          "link": "https://github.com/JSLegendDev/Mario-Game-Kaboom.js"
+          "link": "https://github.com/mviner000/Mario-Game-Kaboom.js"
         }
       ]
     }
