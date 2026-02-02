@@ -20,11 +20,9 @@ The Game Developer owns all **Kaplay game engine** code, handling game logic, pl
 - Game world boundaries
 
 ## Technical Stack
-- **Engine:** Kaplay (Kaboom.js successor) v3001.0.0
-- **Language:** TypeScript 5.9.3
+- **Engine:** Kaplay (Kaboom.js successor) v3001.0.0-beta.8
+- **Language:** JavaScript (ES Modules)
 - **State:** Jotai atoms for React-Game bridge
-
-> **Note:** Migration from JavaScript to TypeScript is **complete**!
 
 ## Key Files
 
