@@ -9,18 +9,20 @@ export const WORLDS: Record<string, WorldConfig> = {
     size: 500,
     buildings: [
       {
-        id: "about",
+        id: "welcome",
         type: "shrine",
         x: 0,
         y: -200,
         data: {
-          title: "About Me",
-          type: "about",
-          content: `Hi! I'm Melvin E. Nogoy, a Full Stack Developer from the Philippines.
+          title: "Welcome!",
+          type: "welcome",
+          content: `Welcome to my portfolio!
 
-I specialize in building modern web applications with React, TypeScript, and Node.js.
+I'm Melvin E. Nogoy, a Full Stack Developer from the Philippines.
 
-When I'm not coding, I explore Filipino indie games and mentor aspiring developers.`,
+Use LEFT CLICK or ARROW KEYS to move me around.
+Walk into buildings to view my work.
+Enter portals (purple) to travel to other worlds.`,
         },
       },
     ],

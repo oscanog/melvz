@@ -5,8 +5,6 @@ import {
   gameStateAtom, 
   cameraPosAtom, 
   heroPosAtom,
-  heroTargetAtom,
-  selectedEntityAtom,
   currentWorldAtom,
   isModalOpenAtom,
   modalDataAtom,
@@ -16,10 +14,10 @@ import { WORLDS } from "../data/worlds";
 
 export class Game {
   private k: KAPLAYCtx;
-  private hero: any = null;
+  private player: any = null;
   private currentWorld: World | null = null;
-  private heroStats = { hp: 100, maxHp: 100, attack: 10 };
-  private defeatedCreeps = new Set<string>();
+  private keys: Record<string, boolean> = {};
+  private lastModalTrigger: string | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.k = kaplay({
@@ -33,7 +31,7 @@ export class Game {
   }
 
   async init() {
-    this.createHero();
+    this.createPlayer();
     this.setupCamera();
     this.setupInput();
     this.loadWorld("town");
@@ -57,232 +55,249 @@ export class Game {
     
     this.currentWorld.enter();
     
-    if (this.hero) {
-      this.hero.pos = this.k.vec2(0, 0);
-      this.hero.vel = this.k.vec2(0, 0);
+    // Keep player position when changing worlds (or reset to center)
+    if (this.player) {
+      // Don't reset position - let player continue from where they "entered"
+      this.player.vel = this.k.vec2(0, 0);
     }
   }
 
-  private createHero() {
-    this.hero = this.k.add([
-      this.k.rect(32, 32),
+  private createPlayer() {
+    // Melvin - the main character (About Me personified)
+    this.player = this.k.add([
+      this.k.rect(32, 48),
       this.k.pos(0, 0),
       this.k.anchor("center"),
-      this.k.color(0, 100, 200),
+      this.k.color(100, 150, 255), // Blue outfit
       this.k.area(),
       this.k.body(),
-      "hero",
-      { speed: 250 },
+      "player",
+      { speed: 200 },
     ]);
 
-    this.k.add([
-      this.k.rect(32, 4),
-      this.k.color(0, 255, 0),
-      "hero-hp",
+    // Name label above player
+    const nameLabel = this.k.add([
+      this.k.text("Melvin", { size: 14, font: "ibm-bold" }),
+      this.k.pos(0, -35),
+      this.k.anchor("center"),
+      this.k.color(255, 215, 0),
+      "player-label",
     ]);
 
-    this.hero.onUpdate(() => {
-      store.set(heroPosAtom, { x: this.hero.pos.x, y: this.hero.pos.y });
+    // Player update loop
+    this.player.onUpdate(() => {
+      // Update store with position
+      store.set(heroPosAtom, { x: this.player.pos.x, y: this.player.pos.y });
       
-      const hpBars = this.k.get("hero-hp");
-      if (hpBars && hpBars.length > 0) {
-        const hpBarObj = hpBars[0];
-        if (hpBarObj && hpBarObj.pos) {
-          hpBarObj.pos.x = this.hero.pos.x;
-          hpBarObj.pos.y = this.hero.pos.y - 25;
-        }
-      }
+      // Update name label position
+      nameLabel.pos.x = this.player.pos.x;
+      nameLabel.pos.y = this.player.pos.y - 35;
+
+      // Handle keyboard movement
+      this.handleKeyboardMovement();
+
+      // Check proximity to buildings for auto-trigger
+      this.checkBuildingProximity();
     });
+  }
+
+  private handleKeyboardMovement() {
+    let moveX = 0;
+    let moveY = 0;
+
+    if (this.keys["left"] || this.keys["a"]) moveX = -1;
+    if (this.keys["right"] || this.keys["d"]) moveX = 1;
+    if (this.keys["up"] || this.keys["w"]) moveY = -1;
+    if (this.keys["down"] || this.keys["s"]) moveY = 1;
+
+    // Normalize diagonal movement
+    if (moveX !== 0 && moveY !== 0) {
+      moveX *= 0.707;
+      moveY *= 0.707;
+    }
+
+    this.player.vel.x = moveX * this.player.speed;
+    this.player.vel.y = moveY * this.player.speed;
   }
 
   private setupCamera() {
     this.k.onUpdate(() => {
-      const heroPos = this.hero.pos;
+      const playerPos = this.player.pos;
       const camPos = this.k.camPos();
-      const targetX = this.k.lerp(camPos.x, heroPos.x, 0.1);
-      const targetY = this.k.lerp(camPos.y, heroPos.y, 0.1);
+      const targetX = this.k.lerp(camPos.x, playerPos.x, 0.1);
+      const targetY = this.k.lerp(camPos.y, playerPos.y, 0.1);
       this.k.camPos(targetX, targetY);
       store.set(cameraPosAtom, { x: targetX, y: targetY });
     });
   }
 
   private setupInput() {
-    this.k.onMousePress("right", () => {
-      const worldPos = this.k.toWorld(this.k.mousePos());
-      this.moveHeroTo(worldPos.x, worldPos.y);
-    });
-
+    // LEFT CLICK to move (best UX as requested)
     this.k.onMousePress("left", () => {
-      const worldPos = this.k.toWorld(this.k.mousePos());
+      // Check if clicking on UI or game world
+      const mousePos = this.k.mousePos();
       
-      const creeps = this.k.get("creep");
-      for (const creep of creeps) {
-        const dx = worldPos.x - creep.pos.x;
-        const dy = worldPos.y - creep.pos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 30 && !this.defeatedCreeps.has(String(creep.id))) {
-          this.attackCreep(creep);
-          return;
-        }
+      // Don't move if clicking near UI areas (top/bottom of screen)
+      if (mousePos.y < 60 || mousePos.y > this.k.height() - 60) {
+        return;
       }
+
+      const worldPos = this.k.toWorld(mousePos);
+      this.movePlayerTo(worldPos.x, worldPos.y);
     });
 
+    // Keyboard controls
+    this.k.onKeyDown("left", () => this.keys["left"] = true);
+    this.k.onKeyRelease("left", () => this.keys["left"] = false);
+    
+    this.k.onKeyDown("right", () => this.keys["right"] = true);
+    this.k.onKeyRelease("right", () => this.keys["right"] = false);
+    
+    this.k.onKeyDown("up", () => this.keys["up"] = true);
+    this.k.onKeyRelease("up", () => this.keys["up"] = false);
+    
+    this.k.onKeyDown("down", () => this.keys["down"] = true);
+    this.k.onKeyRelease("down", () => this.keys["down"] = false);
+
+    // WASD alternatives
+    this.k.onKeyDown("a", () => this.keys["a"] = true);
+    this.k.onKeyRelease("a", () => this.keys["a"] = false);
+    
+    this.k.onKeyDown("d", () => this.keys["d"] = true);
+    this.k.onKeyRelease("d", () => this.keys["d"] = false);
+    
+    this.k.onKeyDown("w", () => this.keys["w"] = true);
+    this.k.onKeyRelease("w", () => this.keys["w"] = false);
+    
+    this.k.onKeyDown("s", () => this.keys["s"] = true);
+    this.k.onKeyRelease("s", () => this.keys["s"] = false);
+
+    // Space to interact with nearby building
     this.k.onKeyPress("space", () => {
-      this.k.camPos(this.hero.pos);
+      this.tryInteractWithNearest();
+    });
+
+    // E to interact alternative
+    this.k.onKeyPress("e", () => {
+      this.tryInteractWithNearest();
     });
   }
 
-  private moveHeroTo(targetX: number, targetY: number) {
-    store.set(heroTargetAtom, { x: targetX, y: targetY });
-    
-    const dx = targetX - this.hero.pos.x;
-    const dy = targetY - this.hero.pos.y;
+  private movePlayerTo(targetX: number, targetY: number) {
+    // Calculate direction
+    const dx = targetX - this.player.pos.x;
+    const dy = targetY - this.player.pos.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     
     if (dist > 0) {
-      this.hero.vel.x = (dx / dist) * this.hero.speed;
-      this.hero.vel.y = (dy / dist) * this.hero.speed;
-    }
+      // Set velocity toward target
+      this.player.vel.x = (dx / dist) * this.player.speed;
+      this.player.vel.y = (dy / dist) * this.player.speed;
 
-    const checkArrival = () => {
-      const dx2 = targetX - this.hero.pos.x;
-      const dy2 = targetY - this.hero.pos.y;
-      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+      // Stop when close
+      const checkArrival = () => {
+        const dx2 = targetX - this.player.pos.x;
+        const dy2 = targetY - this.player.pos.y;
+        const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+        
+        if (dist2 < 10) {
+          this.player.vel.x = 0;
+          this.player.vel.y = 0;
+        } else if (this.player.vel.x !== 0 || this.player.vel.y !== 0) {
+          this.k.wait(0.05, checkArrival);
+        }
+      };
       
-      if (dist2 < 10) {
-        this.hero.vel.x = 0;
-        this.hero.vel.y = 0;
-        store.set(heroTargetAtom, null);
-      } else if (this.hero.vel.x !== 0 || this.hero.vel.y !== 0) {
-        this.k.wait(0.05, checkArrival);
-      }
-    };
-    
-    this.k.wait(0.05, checkArrival);
+      this.k.wait(0.05, checkArrival);
+    }
   }
 
-  private attackCreep(creep: any) {
-    this.moveHeroTo(creep.pos.x, creep.pos.y);
+  private checkBuildingProximity() {
+    const buildings = this.k.get("building");
     
-    const checkAttack = () => {
-      const dx = this.hero.pos.x - creep.pos.x;
-      const dy = this.hero.pos.y - creep.pos.y;
+    for (const building of buildings) {
+      const dx = this.player.pos.x - building.pos.x;
+      const dy = this.player.pos.y - building.pos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       
-      if (dist < 50) {
-        this.performAttack(creep);
-      } else if (this.hero.vel.x !== 0 || this.hero.vel.y !== 0) {
-        this.k.wait(0.1, checkAttack);
+      // If very close to building, show indicator
+      if (dist < 60) {
+        // Could show "Press E to interact" hint here
+        building.use(this.k.color(150, 255, 150)); // Glow green
+      } else {
+        // Reset color based on type
+        this.resetBuildingColor(building);
       }
+    }
+
+    // Check portal proximity
+    const portals = this.k.get("portal");
+    for (const portal of portals) {
+      const dx = this.player.pos.x - portal.pos.x;
+      const dy = this.player.pos.y - portal.pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < 40) {
+        // Auto-travel through portal
+        this.handleInteraction("portal", { target: portal.target });
+      }
+    }
+  }
+
+  private resetBuildingColor(building: any) {
+    const colors: Record<string, [number, number, number]> = {
+      tower: [34, 139, 34],
+      obelisk: [65, 105, 225],
+      shrine: [218, 165, 32],
+      castle: [139, 0, 0],
     };
-    
-    this.k.wait(0.1, checkAttack);
+    const color = colors[building.type] || [100, 100, 100];
+    building.use(this.k.color(color[0], color[1], color[2]));
   }
 
-  private performAttack(creep: any) {
-    this.hero.vel.x = 0;
-    this.hero.vel.y = 0;
-    
-    const originalColor = this.hero.color;
-    this.hero.color = this.k.rgb(255, 255, 0);
-    this.k.wait(0.1, () => {
-      this.hero.color = originalColor;
-    });
-    
-    creep.hp -= this.heroStats.attack;
-    
-    this.showDamageNumber(creep.pos.x, creep.pos.y - 30, this.heroStats.attack);
-    
-    if (creep.hp <= 0) {
-      this.defeatCreep(creep);
-    }
-  }
-
-  private showDamageNumber(x: number, y: number, damage: number) {
-    const text = this.k.add([
-      this.k.text(damage.toString(), { size: 20 }),
-      this.k.pos(x, y),
-      this.k.anchor("center"),
-      this.k.color(255, 0, 0),
-    ]);
-    
-    let age = 0;
-    text.onUpdate(() => {
-      age += this.k.dt();
-      text.pos.y -= 50 * this.k.dt();
-      // Fade out
-      if (age > 0.5) {
-        text.destroy();
-      }
-    });
-  }
-
-  private defeatCreep(creep: any) {
-    this.defeatedCreeps.add(creep.id as string);
-    
-    creep.scale = this.k.vec2(1.5);
-    creep.color = this.k.rgb(100, 100, 100);
-    
-    this.k.wait(0.2, () => {
-      creep.destroy();
-    });
-    
-    this.showReward(creep.pos.x, creep.pos.y);
-    
-    if (creep.reward) {
-      this.unlockContent(creep.reward as string);
-    }
-  }
-
-  private showReward(x: number, y: number) {
-    const text = this.k.add([
-      this.k.text("Unlocked!", { size: 16 }),
-      this.k.pos(x, y - 50),
-      this.k.anchor("center"),
-      this.k.color(255, 215, 0),
-    ]);
-    
-    this.k.wait(2, () => text.destroy());
-  }
-
-  private unlockContent(id: string) {
+  private tryInteractWithNearest() {
     const buildings = this.k.get("building");
-    for (const b of buildings) {
-      if (String(b.id) === id) {
-        b.use(this.k.color(100, 255, 100));
+    let nearest: any = null;
+    let nearestDist = Infinity;
+
+    for (const building of buildings) {
+      const dx = this.player.pos.x - building.pos.x;
+      const dy = this.player.pos.y - building.pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < 80 && dist < nearestDist) {
+        nearest = building;
+        nearestDist = dist;
       }
+    }
+
+    if (nearest) {
+      this.handleInteraction("building", nearest.data);
     }
   }
 
   private handleInteraction(type: string, data: any) {
     if (type === "portal") {
+      // Prevent rapid world switching
+      const now = Date.now();
+      if (this.lastModalTrigger === `portal-${data.target}` && now - (this as any).lastPortalTime < 2000) {
+        return;
+      }
+      (this as any).lastPortalTime = now;
+      this.lastModalTrigger = `portal-${data.target}`;
+      
       this.loadWorld(data.target);
     } else if (type === "building") {
-      const buildings = this.k.get("building");
-      const building = buildings.find((b: any) => b.id === data.id);
-      
-      if (building) {
-        const dx = this.hero.pos.x - building.pos.x;
-        const dy = this.hero.pos.y - building.pos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 80) {
-          store.set(selectedEntityAtom, data.id);
-          store.set(modalDataAtom, data);
-          store.set(isModalOpenAtom, true);
-        } else {
-          this.moveHeroTo(building.pos.x, building.pos.y);
-        }
+      // Prevent duplicate modal opens
+      const now = Date.now();
+      if (this.lastModalTrigger === data.id && now - (this as any).lastModalTime < 1000) {
+        return;
       }
+      (this as any).lastModalTime = now;
+      this.lastModalTrigger = data.id;
+
+      store.set(modalDataAtom, data);
+      store.set(isModalOpenAtom, true);
     }
-  }
-
-  getHeroStats() {
-    return this.heroStats;
-  }
-
-  getDefeatedCreeps() {
-    return Array.from(this.defeatedCreeps);
   }
 }

@@ -4,20 +4,24 @@ import {
   gameStateAtom, 
   isModalOpenAtom, 
   modalDataAtom,
-  selectedEntityAtom,
   currentWorldAtom,
 } from "./stores/gameStore";
 import { SkillTreeButton, SkillTreeModal } from "./components/react/SkillTree";
 
 // Portfolio data
 const PORTFOLIO_DATA: Record<string, any> = {
-  about: {
-    title: "About Me",
-    content: `Hi! I'm Melvin E. Nogoy, a Full Stack Developer from the Philippines.
+  welcome: {
+    title: "Welcome!",
+    content: `Welcome to my interactive portfolio!
 
-I specialize in building modern web applications with React, TypeScript, and Node.js.
+I'm Melvin E. Nogoy (the blue character you control), a Full Stack Developer from the Philippines.
 
-When I'm not coding, I explore Filipino indie games and mentor aspiring developers.`,
+🎮 How to explore:
+• LEFT CLICK anywhere to move
+• ARROW KEYS or WASD to walk
+• Walk into buildings to view content
+• Enter purple portals to travel
+• Press E or SPACE to interact`,
   },
   skills: {
     title: "Skills & Technologies",
@@ -68,19 +72,20 @@ export default function ReactUI(): React.ReactElement {
   const [gameState] = useAtom(gameStateAtom);
   const [isModalOpen, setIsModalOpen] = useAtom(isModalOpenAtom);
   const [modalData, setModalData] = useAtom(modalDataAtom);
-  const selectedEntity = useAtomValue(selectedEntityAtom);
   const currentWorld = useAtomValue(currentWorldAtom);
 
-  // Handle building clicks from game
+  // Handle modal data from game
   useEffect(() => {
-    if (selectedEntity && PORTFOLIO_DATA[selectedEntity]) {
-      setModalData({
-        type: selectedEntity,
-        ...PORTFOLIO_DATA[selectedEntity]
-      });
-      setIsModalOpen(true);
+    if (modalData && modalData.type) {
+      // If it's a building we know about, ensure we have full data
+      if (PORTFOLIO_DATA[modalData.type]) {
+        setModalData({
+          ...modalData,
+          ...PORTFOLIO_DATA[modalData.type]
+        });
+      }
     }
-  }, [selectedEntity, setModalData, setIsModalOpen]);
+  }, [modalData?.type, setModalData]);
 
   if (gameState === "loading") {
     return <LoadingScreen />;
@@ -106,21 +111,25 @@ export default function ReactUI(): React.ReactElement {
             {WORLD_NAMES[currentWorld] || "Unknown Realm"}
           </div>
 
-          <div className="resources" style={{
+          <div className="player-name" style={{
             position: "fixed",
             top: "20px",
             right: "20px",
-            display: "flex",
-            gap: "20px",
+            padding: "10px 20px",
+            background: "linear-gradient(180deg, #1a3a5c, #0d2137)",
+            border: "2px solid #4a90d9",
+            borderRadius: "4px",
+            color: "#fff",
+            fontSize: "1rem",
+            zIndex: 5,
           }}>
-            <span style={{ color: "#d4af37" }}>💀 Creeps Defeated: 0</span>
-            <span style={{ color: "#d4af37" }}>📜 Quests: 4</span>
+            👤 You are: <strong>Melvin</strong>
           </div>
         </div>
 
         <div className="hud-bottom">
           <p className="controls-hint">
-            Right-click to move • Left-click creeps to attack • Click buildings to view • Click portals to travel
+            🖱️ Left Click to move • ⌨️ Arrow Keys/WASD to walk • 🚪 Walk into buildings • 🌀 Enter portals
           </p>
         </div>
       </div>
