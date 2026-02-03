@@ -71,16 +71,18 @@ export class Game {
       this.k.color(100, 150, 255), // Blue outfit
       this.k.area(),
       this.k.body(),
+      this.k.z(50), // Higher than world (0), lower than label (100)
       "player",
       { speed: 200 },
     ]);
 
-    // Name label above player
+    // Name label above player - add AFTER world so it's on top
     const nameLabel = this.k.add([
       this.k.text("Melvin", { size: 14, font: "ibm-bold" }),
       this.k.pos(0, -35),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
+      this.k.z(100), // High z-index to stay on top
       "player-label",
     ]);
 

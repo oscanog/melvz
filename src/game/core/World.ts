@@ -72,6 +72,7 @@ export class World {
           this.k.rect(64, 64),
           this.k.pos(x, y),
           this.k.color(groundColor[0], groundColor[1], groundColor[2]),
+          this.k.z(0), // Ground is at bottom
           "world",
         ]);
         this.entities.push(tile);
@@ -89,6 +90,7 @@ export class World {
       this.k.rect(pathLength, pathWidth),
       this.k.pos(0, 0),
       this.k.color(pathColor[0], pathColor[1], pathColor[2]),
+      this.k.z(1), // Slightly above ground
       "world",
     ]);
     this.entities.push(hPath);
@@ -97,6 +99,7 @@ export class World {
       this.k.rect(pathWidth, pathLength),
       this.k.pos(0, 0),
       this.k.color(pathColor[0], pathColor[1], pathColor[2]),
+      this.k.z(1),
       "world",
     ]);
     this.entities.push(vPath);
@@ -132,6 +135,7 @@ export class World {
       this.k.anchor("center"),
       this.k.color(color[0], color[1], color[2]),
       this.k.area(),
+      this.k.z(10), // Above ground, below player
       "building",
       { id: config.id, data: config.data, type: config.type },
     ]);
@@ -141,6 +145,7 @@ export class World {
       this.k.pos(config.x, config.y - h / 2 - 20),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
+      this.k.z(11), // Above building
       "world",
     ]);
 
@@ -184,6 +189,7 @@ export class World {
       this.k.color(color[0], color[1], color[2]),
       this.k.area(),
       this.k.body(),
+      this.k.z(15), // Above buildings
       "creep",
       { 
         id: config.id, 
@@ -199,6 +205,7 @@ export class World {
       this.k.pos(config.x, config.y - size / 2 - 10),
       this.k.anchor("center"),
       this.k.color(255, 0, 0),
+      this.k.z(16), // Above creep
       "world",
     ]);
 
@@ -232,6 +239,7 @@ export class World {
       this.k.anchor("center"),
       this.k.color(128, 0, 128),
       this.k.area(),
+      this.k.z(20), // Above creeps
       "portal",
       { target: config.targetWorld },
     ]);
@@ -247,6 +255,7 @@ export class World {
       this.k.pos(config.x, config.y - 40),
       this.k.anchor("center"),
       this.k.color(200, 150, 255),
+      this.k.z(21), // Above portal
       "world",
     ]);
 
