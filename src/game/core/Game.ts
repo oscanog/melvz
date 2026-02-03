@@ -84,10 +84,13 @@ export class Game {
     this.hero.onUpdate(() => {
       store.set(heroPosAtom, { x: this.hero.pos.x, y: this.hero.pos.y });
       
-      const hpBarObj = this.k.get("hero-hp")[0];
-      if (hpBarObj) {
-        hpBarObj.pos.x = this.hero.pos.x;
-        hpBarObj.pos.y = this.hero.pos.y - 25;
+      const hpBars = this.k.get("hero-hp");
+      if (hpBars && hpBars.length > 0) {
+        const hpBarObj = hpBars[0];
+        if (hpBarObj && hpBarObj.pos) {
+          hpBarObj.pos.x = this.hero.pos.x;
+          hpBarObj.pos.y = this.hero.pos.y - 25;
+        }
       }
     });
   }
