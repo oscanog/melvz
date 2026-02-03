@@ -141,7 +141,7 @@ export class World {
     ]);
 
     const label = this.k.add([
-      this.k.text(config.data.title, { size: 14, font: "ibm-bold" }),
+      this.k.text(config.data.title, { size: 14, font: "IBM Plex Sans" }),
       this.k.pos(config.x, config.y - h / 2 - 20),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
@@ -251,7 +251,7 @@ export class World {
     });
 
     const label = this.k.add([
-      this.k.text(`→ ${config.label}`, { size: 12, font: "ibm-bold" }),
+      this.k.text(`→ ${config.label}`, { size: 12, font: "IBM Plex Sans" }),
       this.k.pos(config.x, config.y - 40),
       this.k.anchor("center"),
       this.k.color(200, 150, 255),

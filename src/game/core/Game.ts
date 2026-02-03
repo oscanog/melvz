@@ -31,8 +31,8 @@ export class Game {
   }
 
   async init() {
-    // Load font before creating text elements
-    this.k.loadFont("ibm-bold", "/fonts/IBMPlexSans-Bold.ttf");
+    // Wait for Google Font to load
+    await document.fonts.ready;
     
     this.createPlayer();
     this.setupCamera();
@@ -81,7 +81,7 @@ export class Game {
 
     // Name label above player - add AFTER world so it's on top
     const nameLabel = this.k.add([
-      this.k.text("Melvin", { size: 14, font: "ibm-bold" }),
+      this.k.text("Melvin", { size: 14, font: "IBM Plex Sans" }),
       this.k.pos(0, -35),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
