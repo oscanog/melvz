@@ -32,7 +32,7 @@ export class Game {
 
   async init() {
     // Load font before creating text elements
-    this.k.loadFont("ibm-bold", "/font/IBMPlexSans-Bold.ttf");
+    this.k.loadFont("ibm-bold", "/fonts/IBMPlexSans-Bold.ttf");
     
     this.createPlayer();
     this.setupCamera();
