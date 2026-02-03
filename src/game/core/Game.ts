@@ -78,7 +78,7 @@ export class Game {
 
     // Name label above player - add AFTER world so it's on top
     const nameLabel = this.k.add([
-      this.k.text("Melvin", { size: 14, font: "ibm-bold" }),
+      this.k.text("Melvin", { size: 14 }),
       this.k.pos(0, -35),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
