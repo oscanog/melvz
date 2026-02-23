@@ -96,7 +96,11 @@ const SKILLS: Skill[] = [
   },
 ];
 
-export function SkillTreeButton(): React.ReactElement {
+interface SkillTreeButtonProps {
+  isMobile?: boolean;
+}
+
+export function SkillTreeButton({ isMobile }: SkillTreeButtonProps): React.ReactElement {
   const [isOpen, setIsModalOpen] = useAtom(isModalOpenAtom);
   const [, setModalData] = useAtom(modalDataAtom);
 
@@ -105,13 +109,11 @@ export function SkillTreeButton(): React.ReactElement {
     setIsModalOpen(true);
   };
 
-  // Keyboard shortcut K
+  // Keyboard shortcut K (desktop only)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "k" || e.key === "K") {
-        if (!isOpen) {
-          openSkillTree();
-        }
+        if (!isOpen) openSkillTree();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -123,19 +125,20 @@ export function SkillTreeButton(): React.ReactElement {
       onClick={openSkillTree}
       style={{
         position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        padding: "12px 24px",
+        bottom: "calc(20px + env(safe-area-inset-bottom, 0px))",
+        right: "calc(16px + env(safe-area-inset-right, 0px))",
+        padding: "10px 18px",
         background: "linear-gradient(180deg, #3d2817, #2a1b0f)",
         border: "2px solid #8b6914",
         color: "#d4af37",
-        fontSize: "1rem",
+        fontSize: "0.9rem",
         cursor: "pointer",
         borderRadius: "4px",
         zIndex: 5,
+        whiteSpace: "nowrap",
       }}
     >
-      🎮 Skill Tree (K)
+      🎮 Skill Tree{isMobile ? "" : " (K)"}
     </button>
   );
 }
@@ -158,66 +161,34 @@ export function SkillTreeModal(): React.ReactElement | null {
     <div
       className="modal-overlay"
       onClick={() => setIsModalOpen(false)}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "rgba(0, 0, 0, 0.9)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 100,
-      }}
     >
       <div
+        className="modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "linear-gradient(180deg, #1a1a2e, #0f0f1e)",
-          border: "3px solid #8b6914",
-          borderRadius: "12px",
-          padding: "30px",
-          maxWidth: "800px",
-          width: "90%",
-          maxHeight: "80vh",
-          overflow: "auto",
+          maxWidth: 800,
         }}
       >
-        <h2
-          style={{
-            color: "#d4af37",
-            textAlign: "center",
-            marginTop: 0,
-            borderBottom: "2px solid #8b6914",
-            paddingBottom: "15px",
-          }}
-        >
-          ⚔️ Skill Tree ⚔️
-        </h2>
+        <h2 style={{ textAlign: "center" }}>⚔️ Skill Tree ⚔️</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "20px",
-            marginTop: "20px",
-          }}
-        >
+        {/* Responsive 2-col (mobile) → 4-col (desktop) grid via CSS class */}
+        <div className="skill-tree-grid">
           {(["q", "w", "e", "r"] as const).map((category) => (
             <div key={category} style={{ textAlign: "center" }}>
               <h3
                 style={{
                   color: "#888",
                   textTransform: "uppercase",
-                  fontSize: "0.9rem",
-                  marginBottom: "15px",
+                  fontSize: "0.8rem",
+                  marginBottom: "12px",
+                  marginTop: 0,
                 }}
               >
-                {category === "q" && "⚛️ Frontend (Q)"}
-                {category === "w" && "📘 Language (W)"}
-                {category === "e" && "🟢 Backend (E)"}
-                {category === "r" && "👑 Ultimate (R)"}
+                {category === "q" && "⚛️ Frontend"}
+                {category === "w" && "📘 Language"}
+                {category === "e" && "🟢 Backend"}
+                {category === "r" && "👑 Ultimate"}
               </h3>
 
               {skillsByCategory[category].map((skill) => (
@@ -225,31 +196,27 @@ export function SkillTreeModal(): React.ReactElement | null {
                   key={skill.id}
                   onClick={() => setSelectedSkill(skill)}
                   style={{
-                    background: selectedSkill?.id === skill.id
-                      ? "linear-gradient(180deg, #4a3728, #3d2817)"
-                      : "linear-gradient(180deg, #2a1b0f, #1a0f0a)",
+                    background:
+                      selectedSkill?.id === skill.id
+                        ? "linear-gradient(180deg, #4a3728, #3d2817)"
+                        : "linear-gradient(180deg, #2a1b0f, #1a0f0a)",
                     border: `2px solid ${skill.unlocked ? "#8b6914" : "#444"}`,
                     borderRadius: "8px",
-                    padding: "15px",
-                    marginBottom: "10px",
+                    padding: "12px 8px",
+                    marginBottom: "8px",
                     cursor: "pointer",
                     opacity: skill.unlocked ? 1 : 0.5,
                     transition: "all 0.2s",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "2rem",
-                      marginBottom: "5px",
-                    }}
-                  >
+                  <div style={{ fontSize: "1.6rem", marginBottom: "4px" }}>
                     {skill.icon}
                   </div>
                   <div
                     style={{
                       color: skill.unlocked ? "#d4af37" : "#666",
                       fontWeight: "bold",
-                      fontSize: "0.9rem",
+                      fontSize: "0.8rem",
                     }}
                   >
                     {skill.name}
@@ -259,15 +226,15 @@ export function SkillTreeModal(): React.ReactElement | null {
                       display: "flex",
                       justifyContent: "center",
                       gap: "3px",
-                      marginTop: "8px",
+                      marginTop: "6px",
                     }}
                   >
                     {Array.from({ length: skill.maxLevel }).map((_, i) => (
                       <div
                         key={i}
                         style={{
-                          width: "8px",
-                          height: "8px",
+                          width: "7px",
+                          height: "7px",
                           borderRadius: "50%",
                           background: i < skill.level ? "#d4af37" : "#444",
                         }}
@@ -283,37 +250,27 @@ export function SkillTreeModal(): React.ReactElement | null {
         {selectedSkill && (
           <div
             style={{
-              marginTop: "20px",
-              padding: "20px",
+              marginTop: "16px",
+              padding: "16px",
               background: "rgba(139, 105, 20, 0.1)",
               borderRadius: "8px",
               border: "1px solid #8b6914",
             }}
           >
-            <h3 style={{ color: "#d4af37", marginTop: 0 }}>
+            <h3 style={{ color: "#d4af37", marginTop: 0, fontSize: "1rem" }}>
               {selectedSkill.icon} {selectedSkill.name}
             </h3>
-            <p style={{ color: "#ccc" }}>{selectedSkill.description}</p>
-            <div style={{ color: "#888", marginTop: "10px" }}>
+            <p style={{ color: "#ccc", margin: "8px 0", fontSize: "0.9rem" }}>
+              {selectedSkill.description}
+            </p>
+            <div style={{ color: "#888", fontSize: "0.85rem" }}>
               Level: {selectedSkill.level}/{selectedSkill.maxLevel}
             </div>
           </div>
         )}
 
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            style={{
-              padding: "12px 30px",
-              background: "linear-gradient(180deg, #3d2817, #2a1b0f)",
-              border: "2px solid #8b6914",
-              color: "#d4af37",
-              cursor: "pointer",
-              borderRadius: "4px",
-            }}
-          >
-            Close
-          </button>
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <button onClick={() => setIsModalOpen(false)}>Close</button>
         </div>
       </div>
     </div>

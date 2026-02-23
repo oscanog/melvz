@@ -1,23 +1,32 @@
 import kaplay from "kaplay";
 import type { KAPLAYCtx } from "kaplay";
 import { store } from "../../store";
-import { 
-  gameStateAtom, 
-  cameraPosAtom, 
+import {
+  gameStateAtom,
+  cameraPosAtom,
   heroPosAtom,
-  currentWorldAtom,
   isModalOpenAtom,
-  modalDataAtom,
+  mobileInputAtom,
+  autoWalkAtom,
+  zonePhaseAtom,
 } from "../../stores/gameStore";
-import { World } from "./World";
-import { WORLDS } from "../data/worlds";
+import { SVZone, GROUND_Y, PLAYER_SPAWN_X, DESK_X } from "./SVZone";
+import { SV_ZONE_MAP } from "../data/svZones";
+
+// Camera Y is fixed so the side-scroller always shows sky + buildings + ground
+const SV_CAMERA_Y   = -80;
+// Auto-walk speed (px/s)
+const AUTO_WALK_SPEED = 150;
+// Cooldown after zone load before portals can trigger (ms)
+const PORTAL_COOLDOWN_MS = 2000;
 
 export class Game {
   private k: KAPLAYCtx;
   private player: any = null;
-  private currentWorld: World | null = null;
+  private currentZone: SVZone | null = null;
   private keys: Record<string, boolean> = {};
-  private lastModalTrigger: string | null = null;
+  private lastPortalTime = 0;
+  private lastPortalTarget = "";
 
   constructor(canvas: HTMLCanvasElement) {
     this.k = kaplay({
@@ -31,79 +40,194 @@ export class Game {
   }
 
   async init() {
-    // Wait for Google Font to load
+    // Load font into Kaplay
+    this.k.loadFont("IBM Plex Sans", "/fonts/IBMPlexSans-Regular.ttf");
+
+    // Hero sprite only — all environment drawn with shapes
+    await this.k.loadSprite("hero", "/sprites/hero.png", {
+      sliceX: 6, sliceY: 7,
+      anims: {
+        "walk-down":  { from: 0,  to: 5,  loop: true, speed: 8 },
+        "walk-left":  { from: 6,  to: 11, loop: true, speed: 8 },
+        "walk-right": { from: 12, to: 17, loop: true, speed: 8 },
+        "walk-up":    { from: 18, to: 23, loop: true, speed: 8 },
+        "idle-down":  { from: 24, to: 29, loop: true, speed: 4 },
+        "idle-left":  { from: 30, to: 35, loop: true, speed: 4 },
+        "idle-up":    { from: 36, to: 41, loop: true, speed: 4 },
+      },
+    });
+
     await document.fonts.ready;
-    
+
     this.createPlayer();
     this.setupCamera();
     this.setupInput();
-    this.loadWorld("town");
+    this.setupNextZoneListener();
+    this.loadZone("zone1");
     store.set(gameStateAtom, "playing");
   }
 
-  private loadWorld(worldId: string) {
-    this.k.destroyAll("world");
-    this.k.destroyAll("building");
-    this.k.destroyAll("creep");
-    this.k.destroyAll("portal");
-    
-    const config = WORLDS[worldId];
+  // ── Zone management ─────────────────────────────────────────────
+
+  private loadZone(zoneId: string) {
+    const config = SV_ZONE_MAP[zoneId];
     if (!config) return;
 
-    store.set(currentWorldAtom, worldId as any);
-    
-    this.currentWorld = new World(this.k, config, (type, data) => {
-      this.handleInteraction(type, data);
-    });
-    
-    this.currentWorld.enter();
-    
-    // Keep player position when changing worlds (or reset to center)
-    if (this.player) {
-      // Don't reset position - let player continue from where they "entered"
-      this.player.vel = this.k.vec2(0, 0);
+    // Destroy old zone
+    if (this.currentZone) {
+      this.currentZone.destroy();
     }
+    // Destroy player label so it doesn't duplicate
+    this.k.destroyAll("player-label");
+
+    this.currentZone = new SVZone(this.k, config, (targetId) => {
+      this.loadZone(targetId);
+    });
+    this.currentZone.enter();
+
+    // Prevent portal trigger immediately after load
+    this.lastPortalTime = Date.now();
+    this.lastPortalTarget = "";
+
+    // Reset player position + velocity
+    if (this.player) {
+      this.player.pos.x = PLAYER_SPAWN_X;
+      this.player.pos.y = GROUND_Y;
+      this.player.vel.x = 0;
+      this.player.vel.y = 0;
+      this.player.play("walk-right");
+    }
+
+    // Snap camera to spawn point immediately (no drift from previous zone)
+    this.k.setCamPos(PLAYER_SPAWN_X, SV_CAMERA_Y);
+
+    // Re-create name label (destroyed above)
+    this.spawnNameLabel();
+
+    // Reset auto-walk state
+    store.set(autoWalkAtom, true);
+    store.set(zonePhaseAtom, "auto-walking");
+    store.set(isModalOpenAtom, false);
   }
 
+  // ── Player ──────────────────────────────────────────────────────
+
   private createPlayer() {
-    // Melvin - the main character (About Me personified)
     this.player = this.k.add([
-      this.k.rect(32, 48),
-      this.k.pos(0, 0),
+      this.k.sprite("hero", { anim: "walk-right" }),
+      this.k.scale(1.5),
+      this.k.pos(PLAYER_SPAWN_X, GROUND_Y),
       this.k.anchor("center"),
-      this.k.color(100, 150, 255), // Blue outfit
       this.k.area(),
       this.k.body(),
-      this.k.z(50), // Higher than world (0), lower than label (100)
+      this.k.z(50),
       "player",
       { speed: 200 },
     ]);
 
-    // Name label above player - add AFTER world so it's on top
-    const nameLabel = this.k.add([
+    this.spawnNameLabel();
+    this.setupNameLabelFollow();
+
+    this.player.onUpdate(() => {
+      store.set(heroPosAtom, { x: this.player.pos.x, y: this.player.pos.y });
+
+      const phase = store.get(zonePhaseAtom);
+      const autoWalk = store.get(autoWalkAtom);
+
+      if (autoWalk && phase === "auto-walking") {
+        // Check for manual override via held movement keys
+        const anyKeyHeld =
+          this.keys["left"] || this.keys["a"] ||
+          this.keys["right"] || this.keys["d"] ||
+          this.keys["up"]   || this.keys["w"] ||
+          this.keys["down"] || this.keys["s"];
+
+        if (anyKeyHeld) {
+          store.set(autoWalkAtom, false);
+          store.set(zonePhaseAtom, "manual");
+          this.handleKeyboardMovement();
+        } else {
+          this.doAutoWalk();
+        }
+      } else if (phase === "manual") {
+        this.handleKeyboardMovement();
+      }
+      // In arrived/sitting/typing/modal/paused phases — player is stationary
+
+      this.updatePlayerAnimation();
+      this.checkPortalProximity();
+    });
+  }
+
+  /** Spawns the "Melvin" floating name label. Called once on init and after zone loads. */
+  private spawnNameLabel() {
+    this.k.add([
       this.k.text("Melvin", { size: 14, font: "IBM Plex Sans" }),
-      this.k.pos(0, -35),
+      this.k.pos(this.player?.pos.x ?? PLAYER_SPAWN_X, (this.player?.pos.y ?? GROUND_Y) - 65),
       this.k.anchor("center"),
       this.k.color(255, 215, 0),
-      this.k.z(100), // High z-index to stay on top
+      this.k.z(100),
       "player-label",
     ]);
+  }
 
-    // Player update loop
-    this.player.onUpdate(() => {
-      // Update store with position
-      store.set(heroPosAtom, { x: this.player.pos.x, y: this.player.pos.y });
-      
-      // Update name label position
-      nameLabel.pos.x = this.player.pos.x;
-      nameLabel.pos.y = this.player.pos.y - 35;
-
-      // Handle keyboard movement
-      this.handleKeyboardMovement();
-
-      // Check proximity to buildings for auto-trigger
-      this.checkBuildingProximity();
+  /** Registers the label-follow update loop once (called from createPlayer). */
+  private setupNameLabelFollow() {
+    this.k.onUpdate(() => {
+      const labels = this.k.get("player-label");
+      for (const lbl of labels) {
+        if (this.player) {
+          lbl.pos.x = this.player.pos.x;
+          lbl.pos.y = this.player.pos.y - 65;
+        }
+      }
     });
+  }
+
+  private doAutoWalk() {
+    const targetX = this.currentZone?.getDeskX() ?? DESK_X;
+    const dx = targetX - this.player.pos.x;
+
+    if (dx > 5) {
+      // Still walking toward desk
+      this.player.vel.x = AUTO_WALK_SPEED;
+      this.player.vel.y = 0;
+      this.player.pos.y = GROUND_Y; // Lock Y
+    } else {
+      // Arrived — stop and trigger sitting sequence
+      this.player.vel.x = 0;
+      this.player.vel.y = 0;
+      this.player.pos.x = targetX - 5;
+      this.player.pos.y = GROUND_Y;
+      store.set(zonePhaseAtom, "arrived");
+      if (this.currentZone) {
+        this.currentZone.triggerSitting(this.player);
+      }
+    }
+  }
+
+  private updatePlayerAnimation() {
+    const vx = this.player.vel.x;
+    const vy = this.player.vel.y;
+    const moving = Math.abs(vx) > 5 || Math.abs(vy) > 5;
+
+    let targetAnim: string;
+    if (moving) {
+      if (Math.abs(vx) >= Math.abs(vy)) {
+        targetAnim = vx > 0 ? "walk-right" : "walk-left";
+      } else {
+        targetAnim = vy > 0 ? "walk-down" : "walk-up";
+      }
+    } else {
+      const cur = this.player.getCurAnim()?.name ?? "idle-down";
+      if (cur.includes("right") || cur.includes("left")) targetAnim = "idle-left";
+      else if (cur.includes("up")) targetAnim = "idle-up";
+      else targetAnim = "idle-down";
+    }
+
+    if (this.player.getCurAnim()?.name !== targetAnim) {
+      this.player.play(targetAnim);
+    }
   }
 
   private handleKeyboardMovement() {
@@ -115,7 +239,12 @@ export class Game {
     if (this.keys["up"] || this.keys["w"]) moveY = -1;
     if (this.keys["down"] || this.keys["s"]) moveY = 1;
 
-    // Normalize diagonal movement
+    // Mobile D-pad input overrides keyboard
+    const mobileInput = store.get(mobileInputAtom);
+    if (mobileInput.x !== 0) moveX = mobileInput.x;
+    if (mobileInput.y !== 0) moveY = mobileInput.y;
+
+    // Normalize diagonal
     if (moveX !== 0 && moveY !== 0) {
       moveX *= 0.707;
       moveY *= 0.707;
@@ -125,86 +254,91 @@ export class Game {
     this.player.vel.y = moveY * this.player.speed;
   }
 
+  // ── Portal proximity ─────────────────────────────────────────────
+
+  private checkPortalProximity() {
+    const now = Date.now();
+    if (now - this.lastPortalTime < PORTAL_COOLDOWN_MS) return;
+
+    const portals = this.k.get("portal");
+    for (const portal of portals) {
+      const dx = this.player.pos.x - portal.pos.x;
+      const dy = this.player.pos.y - portal.pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 60 && portal.target !== this.lastPortalTarget) {
+        this.lastPortalTime = now;
+        this.lastPortalTarget = portal.target;
+        this.loadZone(portal.target);
+        return;
+      }
+    }
+  }
+
+  // ── Camera (side-scroller: X lerps, Y fixed) ─────────────────────
+
   private setupCamera() {
     this.k.onUpdate(() => {
-      const playerPos = this.player.pos;
-      const camPos = this.k.camPos();
-      const targetX = this.k.lerp(camPos.x, playerPos.x, 0.1);
-      const targetY = this.k.lerp(camPos.y, playerPos.y, 0.1);
-      this.k.camPos(targetX, targetY);
-      store.set(cameraPosAtom, { x: targetX, y: targetY });
+      const playerX = this.player.pos.x;
+      const camX = this.k.getCamPos().x;
+      const targetX = this.k.lerp(camX, playerX, 0.1);
+      this.k.setCamPos(targetX, SV_CAMERA_Y);
+      store.set(cameraPosAtom, { x: targetX, y: SV_CAMERA_Y });
     });
   }
 
+  // ── Input ────────────────────────────────────────────────────────
+
   private setupInput() {
-    // LEFT CLICK to move (best UX as requested)
+    // Left click: switch to manual + click-to-move
     this.k.onMousePress("left", () => {
-      // Check if clicking on UI or game world
       const mousePos = this.k.mousePos();
-      
-      // Don't move if clicking near UI areas (top/bottom of screen)
-      if (mousePos.y < 60 || mousePos.y > this.k.height() - 60) {
-        return;
+      if (mousePos.y < 60 || mousePos.y > this.k.height() - 60) return;
+
+      const phase = store.get(zonePhaseAtom);
+      if (phase === "auto-walking" || phase === "paused") {
+        store.set(autoWalkAtom, false);
+        store.set(zonePhaseAtom, "manual");
       }
 
-      const worldPos = this.k.toWorld(mousePos);
-      this.movePlayerTo(worldPos.x, worldPos.y);
+      if (store.get(zonePhaseAtom) === "manual") {
+        const worldPos = this.k.toWorld(mousePos);
+        this.movePlayerTo(worldPos.x, worldPos.y);
+      }
     });
 
-    // Keyboard controls
-    this.k.onKeyDown("left", () => this.keys["left"] = true);
-    this.k.onKeyRelease("left", () => this.keys["left"] = false);
-    
-    this.k.onKeyDown("right", () => this.keys["right"] = true);
-    this.k.onKeyRelease("right", () => this.keys["right"] = false);
-    
-    this.k.onKeyDown("up", () => this.keys["up"] = true);
-    this.k.onKeyRelease("up", () => this.keys["up"] = false);
-    
-    this.k.onKeyDown("down", () => this.keys["down"] = true);
-    this.k.onKeyRelease("down", () => this.keys["down"] = false);
+    // Keyboard hold listeners
+    const bindKey = (key: string) => {
+      this.k.onKeyDown(key as any, () => { this.keys[key] = true; });
+      this.k.onKeyRelease(key as any, () => { this.keys[key] = false; });
+    };
+    ["left","right","up","down","a","d","w","s"].forEach(bindKey);
+  }
 
-    // WASD alternatives
-    this.k.onKeyDown("a", () => this.keys["a"] = true);
-    this.k.onKeyRelease("a", () => this.keys["a"] = false);
-    
-    this.k.onKeyDown("d", () => this.keys["d"] = true);
-    this.k.onKeyRelease("d", () => this.keys["d"] = false);
-    
-    this.k.onKeyDown("w", () => this.keys["w"] = true);
-    this.k.onKeyRelease("w", () => this.keys["w"] = false);
-    
-    this.k.onKeyDown("s", () => this.keys["s"] = true);
-    this.k.onKeyRelease("s", () => this.keys["s"] = false);
-
-    // Space to interact with nearby building
-    this.k.onKeyPress("space", () => {
-      this.tryInteractWithNearest();
-    });
-
-    // E to interact alternative
-    this.k.onKeyPress("e", () => {
-      this.tryInteractWithNearest();
+  /** Listen for the "Continue →" button from ReactUI to advance to next zone */
+  private setupNextZoneListener() {
+    window.addEventListener("sv-next-zone", (e: Event) => {
+      const detail = (e as CustomEvent).detail as { zoneId: string };
+      if (detail?.zoneId) {
+        this.loadZone(detail.zoneId);
+      }
     });
   }
 
   private movePlayerTo(targetX: number, targetY: number) {
-    // Calculate direction
     const dx = targetX - this.player.pos.x;
     const dy = targetY - this.player.pos.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    
+
     if (dist > 0) {
-      // Set velocity toward target
       this.player.vel.x = (dx / dist) * this.player.speed;
       this.player.vel.y = (dy / dist) * this.player.speed;
 
-      // Stop when close
       const checkArrival = () => {
         const dx2 = targetX - this.player.pos.x;
         const dy2 = targetY - this.player.pos.y;
         const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-        
+
         if (dist2 < 10) {
           this.player.vel.x = 0;
           this.player.vel.y = 0;
@@ -212,97 +346,8 @@ export class Game {
           this.k.wait(0.05, checkArrival);
         }
       };
-      
+
       this.k.wait(0.05, checkArrival);
-    }
-  }
-
-  private checkBuildingProximity() {
-    const buildings = this.k.get("building");
-    
-    for (const building of buildings) {
-      const dx = this.player.pos.x - building.pos.x;
-      const dy = this.player.pos.y - building.pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      // If very close to building, show indicator
-      if (dist < 60) {
-        // Could show "Press E to interact" hint here
-        building.use(this.k.color(150, 255, 150)); // Glow green
-      } else {
-        // Reset color based on type
-        this.resetBuildingColor(building);
-      }
-    }
-
-    // Check portal proximity
-    const portals = this.k.get("portal");
-    for (const portal of portals) {
-      const dx = this.player.pos.x - portal.pos.x;
-      const dy = this.player.pos.y - portal.pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      if (dist < 40) {
-        // Auto-travel through portal
-        this.handleInteraction("portal", { target: portal.target });
-      }
-    }
-  }
-
-  private resetBuildingColor(building: any) {
-    const colors: Record<string, [number, number, number]> = {
-      tower: [34, 139, 34],
-      obelisk: [65, 105, 225],
-      shrine: [218, 165, 32],
-      castle: [139, 0, 0],
-    };
-    const color = colors[building.type] || [100, 100, 100];
-    building.use(this.k.color(color[0], color[1], color[2]));
-  }
-
-  private tryInteractWithNearest() {
-    const buildings = this.k.get("building");
-    let nearest: any = null;
-    let nearestDist = Infinity;
-
-    for (const building of buildings) {
-      const dx = this.player.pos.x - building.pos.x;
-      const dy = this.player.pos.y - building.pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      if (dist < 80 && dist < nearestDist) {
-        nearest = building;
-        nearestDist = dist;
-      }
-    }
-
-    if (nearest) {
-      this.handleInteraction("building", nearest.data);
-    }
-  }
-
-  private handleInteraction(type: string, data: any) {
-    if (type === "portal") {
-      // Prevent rapid world switching
-      const now = Date.now();
-      if (this.lastModalTrigger === `portal-${data.target}` && now - (this as any).lastPortalTime < 2000) {
-        return;
-      }
-      (this as any).lastPortalTime = now;
-      this.lastModalTrigger = `portal-${data.target}`;
-      
-      this.loadWorld(data.target);
-    } else if (type === "building") {
-      // Prevent duplicate modal opens
-      const now = Date.now();
-      if (this.lastModalTrigger === data.id && now - (this as any).lastModalTime < 1000) {
-        return;
-      }
-      (this as any).lastModalTime = now;
-      this.lastModalTrigger = data.id;
-
-      store.set(modalDataAtom, data);
-      store.set(isModalOpenAtom, true);
     }
   }
 }
