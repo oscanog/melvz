@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   gameStateAtom,
   isModalOpenAtom,
@@ -67,14 +67,17 @@ export default function ReactUI(): React.ReactElement {
         <div className="hud-bottom">
           <p className="controls-hint">
             {isMobile
-              ? "🕹️ D-pad to walk • 🌀 Walk into portals to travel zones"
-              : "⌨️ WASD / Arrow Keys to walk • 🌀 Walk into portals to travel zones"}
+              ? "Tap D-pad to take control • 🌀 Walk into portals to travel zones"
+              : "SPACE — take control · then WASD/Arrows to walk · 🌀 portals = next zone"}
           </p>
         </div>
       </div>
 
       {/* Virtual D-pad (touch devices only) */}
       {isMobile && <MobileDPad />}
+
+      {/* Auto-walk "press SPACE to stop" hint — pulsing, disappears once manual */}
+      <AutoWalkHint />
 
       {/* SV Projects Modal — triggered by sitting sequence */}
       {isModalOpen && modalData?.type === "sv-projects" && (
@@ -187,6 +190,36 @@ function SVMonitorModal({ zone, onClose }: { zone: ZoneConfig; onClose: () => vo
           Take Control →
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────
+   Auto-walk "SPACE to take control" hint
+────────────────────────────────────────── */
+function AutoWalkHint() {
+  const autoWalk   = useAtomValue(autoWalkAtom);
+  const zonePhase  = useAtomValue(zonePhaseAtom);
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Show hint 1.5s after auto-walk starts; hide immediately on manual
+  useEffect(() => {
+    if (autoWalk && zonePhase === "auto-walking") {
+      timerRef.current = setTimeout(() => setVisible(true), 1500);
+    } else {
+      clearTimeout(timerRef.current);
+      setVisible(false);
+    }
+    return () => clearTimeout(timerRef.current);
+  }, [autoWalk, zonePhase]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="sv-autowalk-hint">
+      <kbd className="sv-autowalk-hint__key">SPACE</kbd>
+      <span className="sv-autowalk-hint__text">to take control</span>
     </div>
   );
 }
