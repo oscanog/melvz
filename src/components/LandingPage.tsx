@@ -53,6 +53,9 @@ export default function LandingPage(): React.ReactElement {
 
   const gameInitiated = useRef(false);
   const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Track when overlay opened so we can enforce a minimum display time
+  const overlayShownAt = useRef<number>(0);
+  const MIN_OVERLAY_MS = 8_500; // must be >= CSS animation total (8s + buffer)
 
   /* ── Scroll detection — trigger modal near bottom ── */
   const handleScroll = useCallback(() => {
@@ -129,6 +132,10 @@ export default function LandingPage(): React.ReactElement {
 
     setLoadingPct(100);
 
+    // Wait for whichever is longer: 600ms cooldown OR remaining minimum overlay time
+    const elapsed = Date.now() - overlayShownAt.current;
+    const holdMs = Math.max(600, MIN_OVERLAY_MS - elapsed);
+
     const t = setTimeout(() => {
       setOverlayExiting(true);
       setTimeout(() => {
@@ -139,7 +146,7 @@ export default function LandingPage(): React.ReactElement {
           setAppPhase("game");
         }, 700);
       }, 700);
-    }, 600);
+    }, holdMs);
 
     return () => clearTimeout(t);
   }, [gameState, showOverlay, setAppPhase]);
@@ -159,17 +166,18 @@ export default function LandingPage(): React.ReactElement {
     setTerminalActive(true);          // start terminal typing
     setAppPhase("game-loading");      // open terminal bar + dim resume
     setShowOverlay(true);             // show cinematic immediately
+    overlayShownAt.current = Date.now();
 
-    // Animate progress to ~80% while game loads
+    // Animate progress slowly to ~80% over ~8s while cinematic plays
     let pct = 0;
     progressInterval.current = setInterval(() => {
-      pct += Math.random() * 15 + 5;
+      pct += Math.random() * 3 + 1;
       if (pct >= 80) {
         pct = 80;
         clearInterval(progressInterval.current!);
       }
       setLoadingPct(Math.min(pct, 80));
-    }, 60);
+    }, 250);
 
     initGame();
   }, [setAppPhase]);
