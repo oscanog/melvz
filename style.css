@@ -549,49 +549,21 @@ html {
   flex-shrink: 0;
 }
 
-.rp-photo__inner {
+.rp-photo__img {
+  display: block;
   width: 80px;
   height: 96px;
-  background: #e8e8e8;
+  object-fit: cover;
+  object-position: center top;
   border: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  position: relative;
-}
-
-.rp-photo__initials {
-  font-size: 22px;
-  font-weight: 700;
-  color: #555;
-  letter-spacing: 0.04em;
-}
-
-.rp-photo__label {
-  font-size: 9px;
-  color: #aaa;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* Dashed border to signal "placeholder" */
-.rp-photo__inner::after {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1.5px dashed #bbb;
-  pointer-events: none;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 @media (min-width: 640px) {
-  .rp-photo__inner {
+  .rp-photo__img {
     width: 96px;
     height: 112px;
-  }
-  .rp-photo__initials {
-    font-size: 26px;
   }
 }
 

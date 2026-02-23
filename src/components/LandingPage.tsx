@@ -603,10 +603,11 @@ function ResumeContent(): React.ReactElement {
     <>
       <header className="rp-header">
         <div className="rp-photo">
-          <div className="rp-photo__inner">
-            <span className="rp-photo__initials">MN</span>
-            <span className="rp-photo__label">Photo</span>
-          </div>
+          <img
+            src="/melvin_nogoy_id.webp"
+            alt="Melvin Nogoy"
+            className="rp-photo__img"
+          />
         </div>
         <div className="rp-header__text">
           <h1 className="rp-name">MELVIN NOGOY</h1>
