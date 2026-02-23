@@ -43,9 +43,6 @@ export default function LandingPage(): React.ReactElement {
   const [loadingPct, setLoadingPct] = useState(0);
   const [overlayExiting, setOverlayExiting] = useState(false);
 
-  // Root exiting
-  const [rootExiting, setRootExiting] = useState(false);
-
   // Scroll-triggered modal
   const [showEnterModal, setShowEnterModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -138,13 +135,11 @@ export default function LandingPage(): React.ReactElement {
 
     const t = setTimeout(() => {
       setOverlayExiting(true);
+      // Switch to game as soon as the overlay finishes fading (700ms).
+      // This unmounts LandingPage entirely — no paper resume visible gap.
       setTimeout(() => {
-        setShowOverlay(false);
-        setRootExiting(true);
-        setTimeout(() => {
-          window.history.pushState({}, "", "/#game");
-          setAppPhase("game");
-        }, 700);
+        window.history.pushState({}, "", "/#game");
+        setAppPhase("game");
       }, 700);
     }, holdMs);
 
@@ -191,7 +186,7 @@ export default function LandingPage(): React.ReactElement {
   const isHacking = appPhase === "hacking" || appPhase === "game-loading";
 
   return (
-    <div className={`lp-root${rootExiting ? " lp-root--exit" : ""}`}>
+    <div className="lp-root">
       {/* ── Terminal Navbar — z-index above overlay ── */}
       <div className={`lp-terminal${isHacking ? " lp-terminal--open" : ""}`}>
         <div className="lp-terminal__titlebar">
