@@ -17,6 +17,10 @@ import { SV_ZONE_MAP } from "../data/svZones";
 const SV_CAMERA_Y     = -80;
 // Auto-walk speed (px/s)
 const AUTO_WALK_SPEED = 150;
+const MANUAL_MOVE_SPEED = 220;
+const JUMP_VELOCITY = -410;
+const JUMP_GRAVITY = 1150;
+const MAX_FALL_SPEED = 620;
 // Cooldown after zone load before portals can trigger (ms)
 const PORTAL_COOLDOWN_MS = 2000;
 // Nerdy glasses color
@@ -29,6 +33,9 @@ export class Game {
   private keys: Record<string, boolean> = {};
   private lastPortalTime = 0;
   private lastPortalTarget = "";
+  private verticalVel = 0;
+  private isJumping = false;
+  private audioCtx: AudioContext | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.k = kaplay({
@@ -96,6 +103,8 @@ export class Game {
       this.player.pos.y = GROUND_Y;
       this.player.vel.x = 0;
       this.player.vel.y = 0;
+      this.verticalVel = 0;
+      this.isJumping = false;
       this.player.play("walk-right");
     }
 
@@ -137,12 +146,15 @@ export class Game {
       if (autoWalk && phase === "auto-walking") {
         // Auto-walk plays uninterrupted — only SPACE or click stops it
         this.doAutoWalk();
-      } else if (phase === "manual") {
-        this.handleKeyboardMovement();
-      }
+        } else if (phase === "manual") {
+          this.handleKeyboardMovement();
+        } else {
+          this.player.vel.x = 0;
+        }
       // arrived / sitting / typing / modal / paused → player is stationary
 
-      this.updatePlayerAnimation();
+        this.applyVerticalPhysics();
+        this.updatePlayerAnimation();
       this.checkPortalProximity();
     });
   }
@@ -231,12 +243,12 @@ export class Game {
 
     if (dx > 5) {
       this.player.vel.x = AUTO_WALK_SPEED;
-      this.player.vel.y = 0;
+      this.verticalVel = 0;
       this.player.pos.y = GROUND_Y; // Lock Y during auto-walk
     } else {
       // Arrived at desk
       this.player.vel.x = 0;
-      this.player.vel.y = 0;
+      this.verticalVel = 0;
       this.player.pos.x = targetX - 5;
       this.player.pos.y = GROUND_Y;
       store.set(zonePhaseAtom, "arrived");
@@ -248,7 +260,7 @@ export class Game {
 
   private updatePlayerAnimation() {
     const vx = this.player.vel.x;
-    const vy = this.player.vel.y;
+    const vy = this.verticalVel;
     const moving = Math.abs(vx) > 5 || Math.abs(vy) > 5;
 
     let targetAnim: string;
@@ -272,27 +284,92 @@ export class Game {
 
   private handleKeyboardMovement() {
     let moveX = 0;
-    let moveY = 0;
 
     if (this.keys["left"]  || this.keys["a"]) moveX = -1;
     if (this.keys["right"] || this.keys["d"]) moveX =  1;
-    if (this.keys["up"]    || this.keys["w"]) moveY = -1;
-    if (this.keys["down"]  || this.keys["s"]) moveY =  1;
 
     const mob = store.get(mobileInputAtom);
     if (mob.x !== 0) moveX = mob.x;
-    if (mob.y !== 0) moveY = mob.y;
-
-    if (moveX !== 0 && moveY !== 0) {
-      moveX *= 0.707;
-      moveY *= 0.707;
-    }
-
-    this.player.vel.x = moveX * this.player.speed;
-    this.player.vel.y = moveY * this.player.speed;
+    this.player.vel.x = moveX * MANUAL_MOVE_SPEED;
   }
 
   // ── Portal proximity ─────────────────────────────────────────────
+
+  private applyVerticalPhysics() {
+    if (!this.player) return;
+
+    const phase = store.get(zonePhaseAtom);
+    if (phase !== "manual") {
+      this.player.vel.y = 0;
+      this.verticalVel = 0;
+      this.isJumping = false;
+      if (phase === "auto-walking" && this.player.pos.y !== GROUND_Y) {
+        this.player.pos.y = GROUND_Y;
+      }
+      return;
+    }
+
+    const dt = this.k.dt();
+    this.verticalVel = Math.min(this.verticalVel + JUMP_GRAVITY * dt, MAX_FALL_SPEED);
+    this.player.vel.y = this.verticalVel;
+    this.player.pos.y += this.verticalVel * dt;
+
+    if (this.player.pos.y >= GROUND_Y) {
+      this.player.pos.y = GROUND_Y;
+      this.player.vel.y = 0;
+      this.verticalVel = 0;
+      this.isJumping = false;
+    }
+  }
+
+  private tryJump() {
+    if (!this.player) return;
+    if (store.get(zonePhaseAtom) !== "manual") return;
+    if (this.isJumping || this.player.pos.y < GROUND_Y - 0.5) return;
+
+    this.isJumping = true;
+    this.verticalVel = JUMP_VELOCITY;
+    this.playJumpSound();
+  }
+
+  private playJumpSound() {
+    const AudioCtor =
+      window.AudioContext ||
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+
+    if (!this.audioCtx) {
+      this.audioCtx = new AudioCtor();
+    }
+    const ctx = this.audioCtx;
+    if (ctx.state === "suspended") {
+      void ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(920, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.06);
+    osc.frequency.exponentialRampToValueAtTime(680, now + 0.11);
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(2300, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.14);
+  }
 
   private checkPortalProximity() {
     const now = Date.now();
@@ -334,6 +411,7 @@ export class Game {
         store.set(autoWalkAtom, false);
         store.set(zonePhaseAtom, "manual");
       }
+      this.tryJump();
     });
 
     // Left click on game world — also takes manual control
@@ -384,8 +462,9 @@ export class Game {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist > 0) {
-      this.player.vel.x = (dx / dist) * this.player.speed;
-      this.player.vel.y = (dy / dist) * this.player.speed;
+      this.player.vel.x = (dx / dist) * MANUAL_MOVE_SPEED;
+      this.verticalVel = 0;
+      this.player.pos.y = GROUND_Y;
 
       const checkArrival = () => {
         const dx2 = targetX - this.player.pos.x;
@@ -393,8 +472,8 @@ export class Game {
         const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
         if (dist2 < 10) {
           this.player.vel.x = 0;
-          this.player.vel.y = 0;
-        } else if (this.player.vel.x !== 0 || this.player.vel.y !== 0) {
+          this.verticalVel = 0;
+        } else if (this.player.vel.x !== 0) {
           this.k.wait(0.05, checkArrival);
         }
       };

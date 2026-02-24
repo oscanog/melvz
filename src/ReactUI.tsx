@@ -27,8 +27,11 @@ export default function ReactUI(): React.ReactElement {
   const [isModalOpen, setIsModalOpen] = useAtom(isModalOpenAtom);
   const [modalData]    = useAtom(modalDataAtom);
   const appPhase       = useAtomValue(appPhaseAtom);
+  const zoneId         = useAtomValue(currentZoneIdAtom);
   const isMobile       = useIsMobile();
   const setZonePhase   = useSetAtom(zonePhaseAtom);
+  const [zoneTransitionZoneId, setZoneTransitionZoneId] = useState<string | null>(null);
+  const prevZoneRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (appPhase !== "game") return;
@@ -36,6 +39,19 @@ export default function ReactUI(): React.ReactElement {
 
     void initGame();
   }, [appPhase]);
+
+  useEffect(() => {
+    if (appPhase !== "game") return;
+
+    const prev = prevZoneRef.current;
+    prevZoneRef.current = zoneId;
+
+    if (!prev || prev === zoneId || zoneId === "zone1") return;
+
+    setZoneTransitionZoneId(zoneId);
+    const t = setTimeout(() => setZoneTransitionZoneId(null), 1050);
+    return () => clearTimeout(t);
+  }, [appPhase, zoneId]);
 
   // Show landing page until game phase is active
   if (appPhase !== "game") {
@@ -75,14 +91,18 @@ export default function ReactUI(): React.ReactElement {
         <div className="hud-bottom">
           <p className="controls-hint">
             {isMobile
-              ? "Use < > buttons to jump career zones - SPACE to take control"
-              : "Use < > buttons to jump zones - SPACE then WASD/Arrows for manual walk"}
+              ? "Use < > buttons to jump career zones - SPACE to take control/jump"
+              : "Use < > buttons to jump zones - SPACE to take control/jump, then A/D or arrows"}
           </p>
         </div>
       </div>
 
       {/* Zone navigator (all devices) */}
       <ZoneNavigator />
+
+      {zoneTransitionZoneId && (
+        <ZoneTransitionOverlay zoneId={zoneTransitionZoneId} />
+      )}
 
       {/* Auto-walk "press SPACE to stop" hint — pulsing, disappears once manual */}
       <AutoWalkHint />
@@ -152,8 +172,7 @@ function AutoWalkToggle() {
   };
 
   let label = "🤖 Auto";
-  if (zonePhase === "paused") label = "▶ Continue";
-  else if (!autoWalk) label = "🕹️ Manual";
+  if (!autoWalk) label = "🕹️ Manual";
 
   return (
     <button className="hud-control-toggle" onClick={handleClick}>
@@ -266,6 +285,52 @@ function ZoneNavigator(): React.ReactElement {
       >
         {">"}
       </button>
+    </div>
+  );
+}
+
+function ZoneTransitionOverlay({ zoneId }: { zoneId: string }): React.ReactElement {
+  const themes: Record<string, { title: string; className: string; accent: string }> = {
+    zone2: { title: "PROJECT MODE", className: "zone-fx--teal", accent: "Deploying systems..." },
+    zone3: { title: "QA MODE", className: "zone-fx--amber", accent: "Stress-testing reality..." },
+    zone4: { title: "GOVTECH MODE", className: "zone-fx--cyan", accent: "Scaling public platforms..." },
+  };
+  const theme = themes[zoneId] ?? themes.zone2;
+  const rows = Array.from({ length: 14 }, (_, i) => i);
+  const chips = Array.from({ length: 12 }, (_, i) => i);
+
+  return (
+    <div className={`zone-fx ${theme.className}`} aria-hidden="true">
+      <div className="zone-fx__bg" />
+      <div className="zone-fx__grid" />
+      <div className="zone-fx__scan" />
+      <div className="zone-fx__rows">
+        {rows.map((i) => (
+          <div
+            key={i}
+            className="zone-fx__row"
+            style={{ animationDelay: `${i * 40}ms` }}
+          />
+        ))}
+      </div>
+      <div className="zone-fx__chips">
+        {chips.map((i) => (
+          <span
+            key={i}
+            className="zone-fx__chip"
+            style={{
+              left: `${6 + (i % 4) * 23}%`,
+              top: `${10 + Math.floor(i / 4) * 24}%`,
+              animationDelay: `${i * 55}ms`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="zone-fx__content">
+        <p className="zone-fx__wow">WOW</p>
+        <p className="zone-fx__title">{theme.title}</p>
+        <p className="zone-fx__accent">{theme.accent}</p>
+      </div>
     </div>
   );
 }
