@@ -13,6 +13,7 @@ import {
 import LandingPage from "./components/LandingPage";
 import { SV_ZONE_MAP } from "./game/data/svZones";
 import type { ZoneConfig } from "./game/data/svZones";
+import initGame, { getGameInstance } from "./initGame";
 
 /** Detect touch capability once at mount */
 function useIsMobile(): boolean {
@@ -28,6 +29,13 @@ export default function ReactUI(): React.ReactElement {
   const appPhase       = useAtomValue(appPhaseAtom);
   const isMobile       = useIsMobile();
   const setZonePhase   = useSetAtom(zonePhaseAtom);
+
+  useEffect(() => {
+    if (appPhase !== "game") return;
+    if (getGameInstance()) return;
+
+    void initGame();
+  }, [appPhase]);
 
   // Show landing page until game phase is active
   if (appPhase !== "game") {

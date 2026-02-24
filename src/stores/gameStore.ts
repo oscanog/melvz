@@ -2,7 +2,17 @@ import { atom } from "jotai";
 
 // Landing page phase
 export type AppPhase = "landing" | "hacking" | "game-loading" | "game";
-export const appPhaseAtom = atom<AppPhase>("landing");
+const initialHash =
+  typeof window !== "undefined" ? window.location.hash.toLowerCase() : "";
+
+const initialAppPhase: AppPhase =
+  initialHash === "#game"
+    ? "game"
+    : initialHash === "#loading"
+      ? "game-loading"
+      : "landing";
+
+export const appPhaseAtom = atom<AppPhase>(initialAppPhase);
 
 // Game state
 export const gameStateAtom = atom<"loading" | "playing" | "modal">("loading");

@@ -383,6 +383,17 @@ html {
   pointer-events: none;
 }
 
+/* During matrix outro fade, hide the resume underneath so it doesn't flash. */
+.lp-root--blackout {
+  background: #000;
+}
+
+.lp-root--blackout .lp-terminal,
+.lp-root--blackout .lp-scroll,
+.lp-root--blackout .lp-scroll-prompt {
+  opacity: 0;
+}
+
 /* ── Terminal Navbar ── */
 .lp-terminal {
   flex-shrink: 0;
@@ -395,6 +406,10 @@ html {
   /* Float above the cinematic overlay (z-index 200) so it stays readable */
   position: relative;
   z-index: 210;
+  opacity: 1;
+  transition:
+    max-height 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.12s linear;
 }
 
 .lp-terminal--open {
@@ -480,6 +495,10 @@ html {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #888 transparent;
+  opacity: 1;
+  transition:
+    filter 0.35s ease,
+    opacity 0.12s linear;
 }
 
 .lp-scroll--pushed {

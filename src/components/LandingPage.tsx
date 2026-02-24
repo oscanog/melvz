@@ -29,9 +29,13 @@ const TERMINAL_COMMANDS: TerminalEntry[] = [
 export default function LandingPage(): React.ReactElement {
   const [appPhase, setAppPhase] = useAtom(appPhaseAtom);
   const [gameState] = useAtom(gameStateAtom);
+  const startFromLoadingHash = useRef(
+    typeof window !== "undefined" &&
+      window.location.hash.toLowerCase() === "#loading"
+  ).current;
 
   // Terminal state
-  const [terminalActive, setTerminalActive] = useState(false);
+  const [terminalActive, setTerminalActive] = useState(startFromLoadingHash);
   const [currentText, setCurrentText] = useState("");
   const [lineIdx, setLineIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
@@ -39,7 +43,7 @@ export default function LandingPage(): React.ReactElement {
   const [isBackspacing, setIsBackspacing] = useState(false);
 
   // Loading overlay
-  const [showOverlay, setShowOverlay] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(startFromLoadingHash);
   const [loadingPct, setLoadingPct] = useState(0);
   const [overlayExiting, setOverlayExiting] = useState(false);
 
@@ -51,8 +55,9 @@ export default function LandingPage(): React.ReactElement {
   const gameInitiated = useRef(false);
   const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   // Track when overlay opened so we can enforce a minimum display time
-  const overlayShownAt = useRef<number>(0);
+  const overlayShownAt = useRef<number>(startFromLoadingHash ? Date.now() : 0);
   const MIN_OVERLAY_MS = 8_500; // must be >= CSS animation total (8s + buffer)
+  const OVERLAY_EXIT_MS = 650; // matches .lp-overlay--exit animation duration
 
   /* ── Scroll detection — trigger modal near bottom ── */
   const handleScroll = useCallback(() => {
@@ -135,21 +140,32 @@ export default function LandingPage(): React.ReactElement {
 
     const t = setTimeout(() => {
       setOverlayExiting(true);
-      // Switch to game as soon as the overlay finishes fading (700ms).
+      // Switch to game as soon as the overlay finishes fading.
       // This unmounts LandingPage entirely — no paper resume visible gap.
       setTimeout(() => {
-        window.history.pushState({}, "", "/#game");
+        // Replace the temporary loading hash so Back returns to the resume page.
+        window.history.replaceState({}, "", "/#game");
         setAppPhase("game");
-      }, 700);
+      }, OVERLAY_EXIT_MS);
     }, holdMs);
 
     return () => clearTimeout(t);
-  }, [gameState, showOverlay, setAppPhase]);
+  }, [gameState, showOverlay, setAppPhase, OVERLAY_EXIT_MS]);
 
   /* ── Cursor blink ── */
   useEffect(() => {
     const id = setInterval(() => setShowCursor((v) => !v), 177);
     return () => clearInterval(id);
+  }, []);
+
+  // Cleanup pending progress timer on unmount (helps dev StrictMode auto-boot).
+  useEffect(() => {
+    return () => {
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+    };
   }, []);
 
   /* ── Handle "Yes" — terminal + cinematic start SIMULTANEOUSLY ── */
@@ -161,6 +177,9 @@ export default function LandingPage(): React.ReactElement {
     setTerminalActive(true);          // start terminal typing
     setAppPhase("game-loading");      // open terminal bar + dim resume
     setShowOverlay(true);             // show cinematic immediately
+    if (window.location.hash !== "#loading") {
+      window.history.pushState({}, "", "/#loading");
+    }
     overlayShownAt.current = Date.now();
 
     // Animate progress slowly to ~80% over ~8s while cinematic plays
@@ -178,6 +197,12 @@ export default function LandingPage(): React.ReactElement {
   }, [setAppPhase]);
 
   /* ── Handle "No" — dismiss modal, allow re-trigger ── */
+  // Direct route boot: /#loading behaves like auto-clicking "ENTER THE REALM".
+  useEffect(() => {
+    if (!startFromLoadingHash) return;
+    handleEnterYes();
+  }, [handleEnterYes, startFromLoadingHash]);
+
   const handleEnterNo = useCallback(() => {
     setShowEnterModal(false);
     modalShown.current = false;
@@ -186,7 +211,7 @@ export default function LandingPage(): React.ReactElement {
   const isHacking = appPhase === "hacking" || appPhase === "game-loading";
 
   return (
-    <div className="lp-root">
+    <div className={`lp-root${overlayExiting ? " lp-root--blackout" : ""}`}>
       {/* ── Terminal Navbar — z-index above overlay ── */}
       <div className={`lp-terminal${isHacking ? " lp-terminal--open" : ""}`}>
         <div className="lp-terminal__titlebar">
