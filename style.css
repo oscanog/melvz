@@ -1644,12 +1644,17 @@ html {
 .sv-monitor-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.28) 42%,
+    rgba(0, 0, 0, 0.08)
+  );
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 50;
-  padding: 16px;
+  padding: calc(8px + var(--safe-top)) 16px 16px;
 }
 
 .sv-modal__panel {
@@ -1663,6 +1668,7 @@ html {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-top: 0;
 }
 
 .sv-modal__header {
@@ -1768,7 +1774,7 @@ html {
 ────────────────────────────────────────── */
 .sv-autowalk-hint {
   position: fixed;
-  bottom: calc(60px + var(--safe-bottom));
+  bottom: calc(10px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1823,6 +1829,7 @@ html {
   }
   .sv-modal__panel {
     padding: 18px 14px 16px;
+    max-width: min(540px, 96vw);
   }
   .sv-modal__projects {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

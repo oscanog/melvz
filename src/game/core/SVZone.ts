@@ -16,6 +16,7 @@ import {
   currentZoneIdAtom,
   isModalOpenAtom,
   modalDataAtom,
+  autoWalkAtom,
 } from "../../stores/gameStore";
 import type { ZoneConfig, SkyPhase } from "../data/svZones";
 
@@ -93,6 +94,11 @@ export class SVZone {
 
   /** Called by Game.ts when player arrives at desk */
   triggerSitting(player: any) {
+    const isActiveAutoplaySequence = () =>
+      store.get(currentZoneIdAtom) === this.config.id &&
+      store.get(zonePhaseAtom) !== "manual" &&
+      store.get(zonePhaseAtom) !== "paused";
+
     store.set(zonePhaseAtom, "arrived");
 
     // Snap player to desk seat position
@@ -101,23 +107,23 @@ export class SVZone {
     player.vel.x = 0;
     player.vel.y = 0;
 
-    // 1s: seated, dim screen lights up
-    this.k.wait(1, () => {
-      if (store.get(zonePhaseAtom) === "manual") return;
+    // 0.8s: seated, dim screen lights up
+    this.k.wait(0.8, () => {
+      if (!isActiveAutoplaySequence()) return;
       store.set(zonePhaseAtom, "sitting");
       this.lightUpMonitor();
     });
 
-    // 3s: typing starts (code scrolling)
-    this.k.wait(3, () => {
-      if (store.get(zonePhaseAtom) === "manual") return;
+    // 1.8s: typing starts (code scrolling)
+    this.k.wait(1.8, () => {
+      if (!isActiveAutoplaySequence()) return;
       store.set(zonePhaseAtom, "typing");
       this.startCodeScrolling();
     });
 
-    // 5s: project modal appears (if this zone has projects)
-    this.k.wait(5, () => {
-      if (store.get(zonePhaseAtom) === "manual") return;
+    // 2.8s: project modal appears (if this zone has projects)
+    this.k.wait(2.8, () => {
+      if (!isActiveAutoplaySequence()) return;
       store.set(zonePhaseAtom, "modal");
       store.set(modalDataAtom, {
         type: "sv-projects",
@@ -126,9 +132,26 @@ export class SVZone {
       if (this.config.projects.length > 0) {
         store.set(isModalOpenAtom, true);
       } else {
-        // No projects: go straight to paused
-        store.set(zonePhaseAtom, "paused");
+        // No projects: keep the sequence running until the 5s autoplay cutoff
+        store.set(isModalOpenAtom, false);
       }
+    });
+
+    // 5.0s total per experience: auto-advance in autoplay, otherwise pause for manual takeover
+    this.k.wait(5, () => {
+      if (!isActiveAutoplaySequence()) return;
+
+      store.set(isModalOpenAtom, false);
+
+      const isAutoplay = store.get(autoWalkAtom);
+      if (isAutoplay && this.config.right) {
+        window.dispatchEvent(
+          new CustomEvent("sv-load-zone", { detail: { zoneId: this.config.right } })
+        );
+        return;
+      }
+
+      store.set(zonePhaseAtom, "paused");
     });
   }
 
