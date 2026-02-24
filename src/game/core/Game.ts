@@ -363,6 +363,13 @@ export class Game {
 
   /** "Continue →" from ReactUI dispatches this event to load the next zone */
   private setupNextZoneListener() {
+    window.addEventListener("sv-load-zone", (e: Event) => {
+      const detail = (e as CustomEvent).detail as { zoneId: string };
+      if (detail?.zoneId) {
+        this.loadZone(detail.zoneId);
+      }
+    });
+
     window.addEventListener("sv-next-zone", (e: Event) => {
       const detail = (e as CustomEvent).detail as { zoneId: string };
       if (detail?.zoneId) {

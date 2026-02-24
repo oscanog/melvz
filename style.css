@@ -1828,3 +1828,80 @@ html {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
+
+
+/* Always-visible left/right zone navigator */
+.zone-nav {
+  position: fixed;
+  bottom: calc(80px + var(--safe-bottom));
+  left: calc(16px + var(--safe-left));
+  display: flex;
+  gap: 10px;
+  z-index: 6;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: auto;
+}
+
+.zone-nav__btn {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(61, 40, 23, 0.88), rgba(42, 27, 15, 0.88));
+  border: 2px solid #8b6914;
+  color: #d4af37;
+  font-size: 1.45rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s, transform 0.08s ease, opacity 0.12s ease;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 235, 170, 0.18);
+}
+
+.zone-nav__btn:active {
+  background: linear-gradient(180deg, rgba(77, 56, 39, 0.92), rgba(58, 43, 31, 0.92));
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+  transform: translateY(1px);
+}
+
+.zone-nav__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .zone-nav {
+    bottom: calc(96px + var(--safe-bottom));
+    left: calc(20px + var(--safe-left));
+    gap: 12px;
+  }
+
+  .zone-nav__btn {
+    width: 70px;
+    height: 70px;
+    font-size: 1.9rem;
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .zone-nav {
+    bottom: calc(108px + var(--safe-bottom));
+    left: calc(28px + var(--safe-left));
+    gap: 14px;
+  }
+
+  .zone-nav__btn {
+    width: 82px;
+    height: 82px;
+    font-size: 2.2rem;
+    border-radius: 16px;
+  }
+}

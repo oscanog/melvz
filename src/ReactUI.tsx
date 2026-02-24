@@ -75,14 +75,14 @@ export default function ReactUI(): React.ReactElement {
         <div className="hud-bottom">
           <p className="controls-hint">
             {isMobile
-              ? "Tap D-pad to take control • 🌀 Walk into portals to travel zones"
-              : "SPACE — take control · then WASD/Arrows to walk · 🌀 portals = next zone"}
+              ? "Use < > buttons to jump career zones - SPACE to take control"
+              : "Use < > buttons to jump zones - SPACE then WASD/Arrows for manual walk"}
           </p>
         </div>
       </div>
 
-      {/* Virtual D-pad (touch devices only) */}
-      {isMobile && <MobileDPad />}
+      {/* Zone navigator (all devices) */}
+      <ZoneNavigator />
 
       {/* Auto-walk "press SPACE to stop" hint — pulsing, disappears once manual */}
       <AutoWalkHint />
@@ -131,7 +131,7 @@ function AutoWalkToggle() {
         // The portal walk will be triggered via manual zone transition
         // For simplicity: set a flag that Game.ts can pick up via the atom change
         // Actually the cleanest: emit via a custom event
-        window.dispatchEvent(new CustomEvent("sv-next-zone", { detail: { zoneId: config.right } }));
+        window.dispatchEvent(new CustomEvent("sv-load-zone", { detail: { zoneId: config.right } }));
       } else {
         // Last zone — just go manual
         setAutoWalk(false);
@@ -233,51 +233,43 @@ function AutoWalkHint() {
 }
 
 /* ──────────────────────────────────────────
-   Virtual D-pad component
+   Zone navigator component
 ────────────────────────────────────────── */
-function MobileDPad(): React.ReactElement {
+function ZoneNavigator(): React.ReactElement {
+  const zoneId = useAtomValue(currentZoneIdAtom);
+  const config = SV_ZONE_MAP[zoneId];
   const setMobileInput = useSetAtom(mobileInputAtom);
 
-  const press = (x: number, y: number) => setMobileInput({ x, y });
-  const release = () => setMobileInput({ x: 0, y: 0 });
-
-  const btnProps = (x: number, y: number) => ({
-    className: "dpad-btn",
-    onPointerDown: (e: React.PointerEvent) => {
-      e.currentTarget.setPointerCapture(e.pointerId);
-      press(x, y);
-    },
-    onPointerUp: release,
-    onPointerLeave: release,
-    onPointerCancel: release,
-  });
+  const goToZone = (targetZoneId?: string) => {
+    if (!targetZoneId) return;
+    setMobileInput({ x: 0, y: 0 });
+    window.dispatchEvent(new CustomEvent("sv-load-zone", { detail: { zoneId: targetZoneId } }));
+  };
 
   return (
-    <div className="dpad">
-      <div className="dpad-empty" />
-      <button {...btnProps(0, -1)}>▲</button>
-      <div className="dpad-empty" />
-
-      <button {...btnProps(-1, 0)}>◀</button>
-      <div
-        style={{
-          background: "rgba(0,200,100,0.1)",
-          border: "2px solid rgba(0,200,100,0.2)",
-          borderRadius: "8px",
-        }}
-      />
-      <button {...btnProps(1, 0)}>▶</button>
-
-      <div className="dpad-empty" />
-      <button {...btnProps(0, 1)}>▼</button>
-      <div className="dpad-empty" />
+    <div className="zone-nav" aria-label="Career timeline navigation">
+      <button
+        className="zone-nav__btn"
+        onClick={() => goToZone(config?.left)}
+        disabled={!config?.left}
+        aria-label="Previous zone"
+        title={config?.left ? "Previous zone" : "No previous zone"}
+      >
+        {"<"}
+      </button>
+      <button
+        className="zone-nav__btn"
+        onClick={() => goToZone(config?.right)}
+        disabled={!config?.right}
+        aria-label="Next zone"
+        title={config?.right ? "Next zone" : "No next zone"}
+      >
+        {">"}
+      </button>
     </div>
   );
 }
 
-/* ──────────────────────────────────────────
-   Loading Screen (fallback)
-────────────────────────────────────────── */
 function LoadingScreen(): React.ReactElement {
   return (
     <div className="loading-screen">
