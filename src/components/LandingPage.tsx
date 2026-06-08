@@ -4,6 +4,7 @@ import { appPhaseAtom, gameStateAtom } from "../stores/gameStore";
 import initGame from "../initGame";
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import type { PortfolioContent } from "../content/portfolioTypes";
+import { ProfileImage } from "./ProfileImage";
 
 /* ──────────────────────────────────────────
    Terminal command sequence
@@ -31,7 +32,7 @@ const TERMINAL_COMMANDS: TerminalEntry[] = [
 export default function LandingPage(): React.ReactElement {
   const [appPhase, setAppPhase] = useAtom(appPhaseAtom);
   const [gameState] = useAtom(gameStateAtom);
-  const { content } = usePortfolioContent();
+  const { content, loading } = usePortfolioContent();
   const startFromLoadingHash = useRef(
     typeof window !== "undefined" &&
       window.location.hash.toLowerCase() === "#loading"
@@ -250,7 +251,7 @@ export default function LandingPage(): React.ReactElement {
         onScroll={handleScroll}
       >
         <div className="lp-paper">
-          <ResumeContent content={content} />
+          <ResumeContent content={content} imageLoading={loading} />
         </div>
       </div>
 
@@ -621,15 +622,21 @@ function EnterGameModal({
 /* ──────────────────────────────────────────
    Resume Content
 ────────────────────────────────────────── */
-function ResumeContent({ content }: { content: PortfolioContent }): React.ReactElement {
+function ResumeContent({
+  content,
+  imageLoading,
+}: {
+  content: PortfolioContent;
+  imageLoading: boolean;
+}): React.ReactElement {
   return (
     <>
       <header className="rp-header">
         <div className="rp-photo">
-          <img
+          <ProfileImage
             src={content.profile.imageUrl}
             alt={content.profile.imageAlt}
-            className="rp-photo__img"
+            defer={imageLoading}
           />
         </div>
         <div className="rp-header__text">

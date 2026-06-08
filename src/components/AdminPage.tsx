@@ -25,6 +25,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { isConvexConfigured } from "../convex/OptionalConvexProvider";
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
+import { ProfileImage } from "./ProfileImage";
 import type {
   EducationItem,
   ExperienceItem,
@@ -81,6 +82,12 @@ function InlineAdmin(): ReactElement {
     if (dirty) return;
     setDraft(content);
   }, [content, dirty]);
+
+  useEffect(() => {
+    return () => {
+      if (uploadPreview) URL.revokeObjectURL(uploadPreview);
+    };
+  }, [uploadPreview]);
 
   const errors = validatePortfolio(draft);
 
@@ -154,7 +161,9 @@ function InlineAdmin(): ReactElement {
       return;
     }
 
-    setUploadPreview(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    if (uploadPreview) URL.revokeObjectURL(uploadPreview);
+    setUploadPreview(previewUrl);
     setBusy(true);
     setSaveState("saving");
     setStatus("Uploading image...");
@@ -180,10 +189,14 @@ function InlineAdmin(): ReactElement {
             imageUrl: profileImageUrl,
           },
         }));
+        URL.revokeObjectURL(previewUrl);
+        setUploadPreview("");
       }
       setStatus("Image uploaded");
       setSaveState("dirty");
     } catch (error) {
+      URL.revokeObjectURL(previewUrl);
+      setUploadPreview("");
       setSaveState("failed");
       setStatus(error instanceof Error ? error.message : "Image upload failed");
     } finally {
@@ -254,7 +267,11 @@ function InlineAdmin(): ReactElement {
         <article className="lp-paper inline-resume-paper">
           <header className="rp-header">
             <label className="rp-photo inline-photo-edit" title="Upload profile image">
-              <img src={uploadPreview || draft.profile.imageUrl} alt={draft.profile.imageAlt} className="rp-photo__img" />
+              <ProfileImage
+                src={uploadPreview || draft.profile.imageUrl}
+                alt={draft.profile.imageAlt}
+                defer={loading && !uploadPreview}
+              />
               <span><Upload size={14} /></span>
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} />
             </label>

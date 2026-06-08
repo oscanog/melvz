@@ -1484,18 +1484,57 @@ html {
   flex-shrink: 0;
 }
 
+.profile-image-shell {
+  display: block;
+  width: 80px;
+  height: 96px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 48%, #f9fafb 100%);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-image-shell::before {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(156, 163, 175, 0.35), transparent 30%),
+    radial-gradient(circle at 50% 82%, rgba(156, 163, 175, 0.28), transparent 34%);
+  filter: blur(10px);
+  opacity: 0.7;
+  transform: scale(1.04);
+}
+
+.profile-image-shell .rp-photo__img {
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(1.02);
+  transition:
+    opacity 180ms ease,
+    filter 220ms ease,
+    transform 220ms ease;
+}
+
+.profile-image-shell--loaded .rp-photo__img {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
 .rp-photo__img {
   display: block;
   width: 80px;
   height: 96px;
   object-fit: cover;
   object-position: center top;
-  border: 1px solid #ccc;
-  border-radius: 2px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 @media (min-width: 640px) {
+  .profile-image-shell,
   .rp-photo__img {
     width: 96px;
     height: 112px;
