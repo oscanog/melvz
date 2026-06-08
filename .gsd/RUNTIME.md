@@ -7,6 +7,14 @@
 - Default Vite URL: `http://localhost:5173`
 - Existing Playwright config targets: `http://localhost:5174`
 
+## Production Hosting
+
+- Host frontend on Vercel.
+- Vercel build command: `npx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd 'npm run build'`
+- Vercel env var: `CONVEX_DEPLOY_KEY`
+- Convex production env var: `ADMIN_PASSCODE`
+- GitHub Pages workflow is removed.
+
 ## Convex
 
 - Start local Convex sync and Vite: `npm run dev`

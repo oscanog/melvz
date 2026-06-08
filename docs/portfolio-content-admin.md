@@ -20,6 +20,8 @@ npx convex env set ADMIN_PASSCODE "your-private-passcode"
 npx convex run seed:portfolio '{"adminPasscode":"your-private-passcode"}'
 ```
 
+For production, deploy with Vercel using `vercel.json`. Vercel needs `CONVEX_DEPLOY_KEY`; Convex production needs `ADMIN_PASSCODE`.
+
 ## Editing
 
 1. Start app: `npm run dev`.

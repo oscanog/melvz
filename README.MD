@@ -31,6 +31,18 @@ npm run lint
 npm run build
 ```
 
+## Deployment
+
+Production deployment uses Vercel plus Convex. GitHub Pages is not used.
+
+Vercel build command is configured in `vercel.json`:
+
+```bash
+npx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd 'npm run build'
+```
+
+Set `CONVEX_DEPLOY_KEY` in Vercel and `ADMIN_PASSCODE` in the Convex production deployment. See `docs/deploy-vercel-convex.md`.
+
 ## Convex Setup
 
 Link/create the Convex project and start localhost:
@@ -39,7 +51,7 @@ Link/create the Convex project and start localhost:
 npm run dev
 ```
 
-Convex manages the generated deployment URL for Vite during dev. For manual overrides, use `.env.local`:
+Convex manages the generated deployment URL for Vite during dev. Vercel production builds receive `VITE_CONVEX_URL` from `npx convex deploy`. For manual local overrides, use `.env.local`:
 
 ```bash
 VITE_CONVEX_URL=https://your-deployment.convex.cloud

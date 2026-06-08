@@ -35,3 +35,9 @@ Use a mobile-first structured CMS editor as the primary portfolio update workflo
 Status: Accepted
 
 For the boss-facing admin flow, show the actual bond-paper resume and add inline edit controls. This supersedes a separate CMS dashboard as the primary editing experience.
+
+## D007 - Vercel Hosts Production With Convex Deploy
+
+Status: Accepted
+
+Use Vercel for production hosting. Vercel runs `npx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd 'npm run build'` so Convex functions and the Vite frontend deploy together. Remove the GitHub Pages workflow.
