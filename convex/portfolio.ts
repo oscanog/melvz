@@ -15,12 +15,15 @@ export const get = query({
     const profileImageUrl = doc.imageStorageId
       ? await ctx.storage.getUrl(doc.imageStorageId)
       : null;
+    const profileImageBlurUrl = doc.imageBlurStorageId
+      ? await ctx.storage.getUrl(doc.imageBlurStorageId)
+      : null;
 
     return {
       content: doc.content,
       profileImageUrl,
+      profileImageBlurUrl,
       updatedAt: doc.updatedAt,
     };
   },
 });
-

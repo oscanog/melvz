@@ -6,6 +6,7 @@ export default defineSchema({
     key: v.string(),
     content: v.any(),
     imageStorageId: v.optional(v.id("_storage")),
+    imageBlurStorageId: v.optional(v.id("_storage")),
     updatedAt: v.number(),
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),
@@ -15,4 +16,3 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_token", ["token"]),
 });
-

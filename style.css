@@ -1492,6 +1492,9 @@ html {
   border-radius: 2px;
   background:
     linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 48%, #f9fafb 100%);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   overflow: hidden;
   position: relative;
@@ -1509,7 +1512,16 @@ html {
   transform: scale(1.04);
 }
 
+.profile-image-shell--has-blur::before {
+  background: inherit;
+  filter: blur(14px);
+  opacity: 1;
+  transform: scale(1.18);
+}
+
 .profile-image-shell .rp-photo__img {
+  position: relative;
+  z-index: 1;
   opacity: 0;
   filter: blur(10px);
   transform: scale(1.02);

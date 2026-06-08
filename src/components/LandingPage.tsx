@@ -636,6 +636,7 @@ function ResumeContent({
           <ProfileImage
             src={content.profile.imageUrl}
             alt={content.profile.imageAlt}
+            blurSrc={content.profile.imageBlurUrl}
             defer={imageLoading}
           />
         </div>

@@ -33,3 +33,9 @@
 - Verify mobile and desktop layouts.
 - Verify public portfolio stays read-only.
 
+## Slice 6 - Profile Image Optimization
+
+- Convert admin profile image uploads to WebP before Convex storage.
+- Store the full HD image and a 32x32 WebP blur placeholder as separate Convex storage files.
+- Render the blur placeholder first, then lazy-load and fade in the full profile image.
+- Keep old portfolio rows without blur storage compatible.

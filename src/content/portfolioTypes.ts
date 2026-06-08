@@ -58,6 +58,7 @@ export interface PortfolioContent {
     name: string;
     title: string;
     imageUrl: string;
+    imageBlurUrl?: string;
     imageAlt: string;
     contacts: string[];
     summary: string;
@@ -74,4 +75,3 @@ export interface PortfolioContent {
     zones: GameZone[];
   };
 }
-

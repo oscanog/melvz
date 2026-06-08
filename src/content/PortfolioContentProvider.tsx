@@ -66,7 +66,8 @@ function ConvexPortfolioContentProvider({
     if (!remote?.content) return fallbackPortfolio;
     return withPortfolioImageUrl(
       normalizePortfolioContent(remote.content),
-      remote.profileImageUrl
+      remote.profileImageUrl,
+      remote.profileImageBlurUrl
     );
   }, [remote]);
 
@@ -90,4 +91,3 @@ function ConvexPortfolioContentProvider({
 export function usePortfolioContent(): PortfolioContentValue {
   return useContext(PortfolioContentContext);
 }
-

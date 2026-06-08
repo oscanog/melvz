@@ -21,7 +21,8 @@ async function assertAdmin(ctx: MutationCtx, token: string) {
 async function upsertPortfolio(
   ctx: MutationCtx,
   content: unknown,
-  imageStorageId?: Id<"_storage">
+  imageStorageId?: Id<"_storage">,
+  imageBlurStorageId?: Id<"_storage">
 ) {
   const existing = await ctx.db
     .query("portfolio")
@@ -33,6 +34,7 @@ async function upsertPortfolio(
     updatedAt: Date.now(),
     updatedBy: "admin",
     ...(imageStorageId ? { imageStorageId } : {}),
+    ...(imageBlurStorageId ? { imageBlurStorageId } : {}),
   };
 
   if (existing) {
@@ -81,7 +83,10 @@ export const generateProfileImageUploadUrl = mutation({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
     await assertAdmin(ctx, args.sessionToken);
-    return await ctx.storage.generateUploadUrl();
+    return {
+      fullUploadUrl: await ctx.storage.generateUploadUrl(),
+      blurUploadUrl: await ctx.storage.generateUploadUrl(),
+    };
   },
 });
 
@@ -89,6 +94,7 @@ export const setProfileImage = mutation({
   args: {
     sessionToken: v.string(),
     storageId: v.id("_storage"),
+    blurStorageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     await assertAdmin(ctx, args.sessionToken);
@@ -100,16 +106,18 @@ export const setProfileImage = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         imageStorageId: args.storageId,
+        imageBlurStorageId: args.blurStorageId,
         updatedAt: Date.now(),
         updatedBy: "admin",
       });
     } else {
-      await upsertPortfolio(ctx, defaultPortfolio, args.storageId);
+      await upsertPortfolio(ctx, defaultPortfolio, args.storageId, args.blurStorageId);
     }
 
     return {
       ok: true,
       profileImageUrl: await ctx.storage.getUrl(args.storageId),
+      profileImageBlurUrl: await ctx.storage.getUrl(args.blurStorageId),
     };
   },
 });

@@ -25,6 +25,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { isConvexConfigured } from "../convex/OptionalConvexProvider";
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
+import { prepareProfileImageUpload } from "../utils/profileImageProcessing";
 import { ProfileImage } from "./ProfileImage";
 import type {
   EducationItem,
@@ -35,6 +36,37 @@ import type {
 } from "../content/portfolioTypes";
 
 const SESSION_KEY = "melvz-admin-session";
+const SUPPORTED_PROFILE_IMAGE_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "webp",
+  "gif",
+  "bmp",
+  "avif",
+  "heic",
+  "heif",
+  "3fr",
+  "arw",
+  "cr2",
+  "cr3",
+  "dcr",
+  "dng",
+  "erf",
+  "k25",
+  "kdc",
+  "mrw",
+  "nef",
+  "nrw",
+  "orf",
+  "pef",
+  "raf",
+  "raw",
+  "rw2",
+  "sr2",
+  "srf",
+  "x3f",
+]);
 
 type SaveState = "saved" | "dirty" | "saving" | "failed" | "invalid";
 type ProjectBucket = "featured" | "compact";
@@ -154,48 +186,54 @@ function InlineAdmin(): ReactElement {
   const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    if (!isSupportedProfileImageFile(file)) {
       setSaveState("failed");
-      setStatus("Use JPG, PNG, or WebP");
+      setStatus("Use JPG, PNG, WebP, HEIC, AVIF, GIF, BMP, or common RAW photo files");
       event.target.value = "";
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    if (uploadPreview) URL.revokeObjectURL(uploadPreview);
-    setUploadPreview(previewUrl);
     setBusy(true);
     setSaveState("saving");
-    setStatus("Uploading image...");
+    setStatus("Converting image to WebP...");
+    let previewUrl = "";
     try {
-      const uploadUrl = await generateUploadUrl({ sessionToken });
-      const upload = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!upload.ok) throw new Error("Image upload failed");
-      const { storageId } = (await upload.json()) as { storageId: string };
+      const prepared = await prepareProfileImageUpload(file);
+      previewUrl = prepared.previewUrl;
+      if (uploadPreview) URL.revokeObjectURL(uploadPreview);
+      setUploadPreview(previewUrl);
+
+      setStatus("Uploading optimized image...");
+      const uploadUrls = await generateUploadUrl({ sessionToken });
+      const fullStorageId = await uploadBlob(uploadUrls.fullUploadUrl, prepared.fullBlob);
+      const blurStorageId = await uploadBlob(uploadUrls.blurUploadUrl, prepared.blurBlob);
       const imageResult = await setProfileImage({
         sessionToken,
-        storageId: storageId as Id<"_storage">,
+        storageId: fullStorageId,
+        blurStorageId,
       });
       if (typeof imageResult.profileImageUrl === "string") {
         const profileImageUrl = imageResult.profileImageUrl;
+        const profileImageBlurUrl =
+          typeof imageResult.profileImageBlurUrl === "string"
+            ? imageResult.profileImageBlurUrl
+            : undefined;
         updateDraft((current) => ({
           ...current,
           profile: {
             ...current.profile,
             imageUrl: profileImageUrl,
+            ...(profileImageBlurUrl ? { imageBlurUrl: profileImageBlurUrl } : {}),
           },
         }));
         URL.revokeObjectURL(previewUrl);
+        previewUrl = "";
         setUploadPreview("");
       }
-      setStatus("Image uploaded");
+      setStatus("Image optimized and uploaded");
       setSaveState("dirty");
     } catch (error) {
-      URL.revokeObjectURL(previewUrl);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setUploadPreview("");
       setSaveState("failed");
       setStatus(error instanceof Error ? error.message : "Image upload failed");
@@ -203,6 +241,17 @@ function InlineAdmin(): ReactElement {
       setBusy(false);
       event.target.value = "";
     }
+  };
+
+  const uploadBlob = async (uploadUrl: string, blob: Blob) => {
+    const upload = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": blob.type || "image/webp" },
+      body: blob,
+    });
+    if (!upload.ok) throw new Error("Image upload failed");
+    const { storageId } = (await upload.json()) as { storageId: string };
+    return storageId as Id<"_storage">;
   };
 
   if (!sessionToken) {
@@ -270,10 +319,15 @@ function InlineAdmin(): ReactElement {
               <ProfileImage
                 src={uploadPreview || draft.profile.imageUrl}
                 alt={draft.profile.imageAlt}
+                blurSrc={draft.profile.imageBlurUrl}
                 defer={loading && !uploadPreview}
               />
               <span><Upload size={14} /></span>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} />
+              <input
+                type="file"
+                accept="image/*,.heic,.heif,.3fr,.arw,.cr2,.cr3,.dcr,.dng,.erf,.k25,.kdc,.mrw,.nef,.nrw,.orf,.pef,.raf,.raw,.rw2,.sr2,.srf,.x3f"
+                onChange={uploadImage}
+              />
             </label>
             <div className="rp-header__text">
               <EditableText
@@ -498,6 +552,11 @@ function InlineAdmin(): ReactElement {
       </div>
     </main>
   );
+}
+
+function isSupportedProfileImageFile(file: File): boolean {
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return file.type.startsWith("image/") || SUPPORTED_PROFILE_IMAGE_EXTENSIONS.has(extension);
 }
 
 function EducationEditor({

@@ -35,6 +35,11 @@ For production, deploy with Vercel using `vercel.json`. Vercel needs `CONVEX_DEP
 
 - Admin sees the same resume design as the public portfolio, but editable.
 - Profile image upload is attached to the resume photo.
+- Uploaded profile images are optimized in the browser before storage:
+  - JPG, PNG, GIF, BMP, AVIF, and other browser-decodable images become HD WebP.
+  - Existing WebP uploads keep the original WebP file.
+  - HEIC/HEIF and common RAW camera files are attempted through lazy-loaded converters.
+  - A 32x32 WebP blur placeholder is stored beside the full image for smoother landing-page loading.
 - Overflow content creates additional bond-paper pages.
 - Failed saves keep the draft in the browser so edits are not lost.
 

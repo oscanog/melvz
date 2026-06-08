@@ -4,14 +4,16 @@ import type { PortfolioContent } from "./portfolioTypes";
 
 export function withPortfolioImageUrl(
   content: PortfolioContent,
-  imageUrl?: string | null
+  imageUrl?: string | null,
+  imageBlurUrl?: string | null
 ): PortfolioContent {
-  if (!imageUrl) return content;
+  if (!imageUrl && !imageBlurUrl) return content;
   return {
     ...content,
     profile: {
       ...content.profile,
-      imageUrl,
+      ...(imageUrl ? { imageUrl } : {}),
+      ...(imageBlurUrl ? { imageBlurUrl } : {}),
     },
   };
 }
@@ -28,4 +30,3 @@ export function getZoneMap(content: PortfolioContent): Record<string, ZoneConfig
     content.game.zones.map((zone) => [zone.id, zone as ZoneConfig])
   );
 }
-
