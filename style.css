@@ -1490,8 +1490,7 @@ html {
   height: 96px;
   border: 1px solid #ccc;
   border-radius: 2px;
-  background:
-    linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 48%, #f9fafb 100%);
+  background: transparent;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -1501,22 +1500,11 @@ html {
 }
 
 .profile-image-shell::before {
-  content: "";
-  position: absolute;
-  inset: -16px;
-  background:
-    radial-gradient(circle at 50% 32%, rgba(156, 163, 175, 0.35), transparent 30%),
-    radial-gradient(circle at 50% 82%, rgba(156, 163, 175, 0.28), transparent 34%);
-  filter: blur(10px);
-  opacity: 0.7;
-  transform: scale(1.04);
+  content: none;
 }
 
 .profile-image-shell--has-blur::before {
-  background: inherit;
-  filter: blur(14px);
-  opacity: 1;
-  transform: scale(1.18);
+  content: none;
 }
 
 .profile-image-shell .rp-photo__img {
