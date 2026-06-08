@@ -636,6 +636,7 @@ function ResumeContent({
           <ProfileImage
             src={content.profile.imageUrl}
             alt={content.profile.imageAlt}
+            srcSet={content.profile.image2xUrl ? `${content.profile.imageUrl} 1x, ${content.profile.image2xUrl} 2x` : undefined}
             blurSrc={content.profile.imageBlurUrl}
             defer={imageLoading}
           />

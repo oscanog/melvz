@@ -22,7 +22,9 @@ async function upsertPortfolio(
   ctx: MutationCtx,
   content: unknown,
   imageStorageId?: Id<"_storage">,
-  imageBlurStorageId?: Id<"_storage">
+  imageBlurStorageId?: Id<"_storage">,
+  imageDisplay2xStorageId?: Id<"_storage">,
+  imageArchiveStorageId?: Id<"_storage">
 ) {
   const existing = await ctx.db
     .query("portfolio")
@@ -35,6 +37,8 @@ async function upsertPortfolio(
     updatedBy: "admin",
     ...(imageStorageId ? { imageStorageId } : {}),
     ...(imageBlurStorageId ? { imageBlurStorageId } : {}),
+    ...(imageDisplay2xStorageId ? { imageDisplay2xStorageId } : {}),
+    ...(imageArchiveStorageId ? { imageArchiveStorageId } : {}),
   };
 
   if (existing) {
@@ -84,8 +88,10 @@ export const generateProfileImageUploadUrl = mutation({
   handler: async (ctx, args) => {
     await assertAdmin(ctx, args.sessionToken);
     return {
-      fullUploadUrl: await ctx.storage.generateUploadUrl(),
+      displayUploadUrl: await ctx.storage.generateUploadUrl(),
+      display2xUploadUrl: await ctx.storage.generateUploadUrl(),
       blurUploadUrl: await ctx.storage.generateUploadUrl(),
+      archiveUploadUrl: await ctx.storage.generateUploadUrl(),
     };
   },
 });
@@ -95,6 +101,8 @@ export const setProfileImage = mutation({
     sessionToken: v.string(),
     storageId: v.id("_storage"),
     blurStorageId: v.id("_storage"),
+    display2xStorageId: v.id("_storage"),
+    archiveStorageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     await assertAdmin(ctx, args.sessionToken);
@@ -107,16 +115,26 @@ export const setProfileImage = mutation({
       await ctx.db.patch(existing._id, {
         imageStorageId: args.storageId,
         imageBlurStorageId: args.blurStorageId,
+        imageDisplay2xStorageId: args.display2xStorageId,
+        imageArchiveStorageId: args.archiveStorageId,
         updatedAt: Date.now(),
         updatedBy: "admin",
       });
     } else {
-      await upsertPortfolio(ctx, defaultPortfolio, args.storageId, args.blurStorageId);
+      await upsertPortfolio(
+        ctx,
+        defaultPortfolio,
+        args.storageId,
+        args.blurStorageId,
+        args.display2xStorageId,
+        args.archiveStorageId
+      );
     }
 
     return {
       ok: true,
       profileImageUrl: await ctx.storage.getUrl(args.storageId),
+      profileImage2xUrl: await ctx.storage.getUrl(args.display2xStorageId),
       profileImageBlurUrl: await ctx.storage.getUrl(args.blurStorageId),
     };
   },

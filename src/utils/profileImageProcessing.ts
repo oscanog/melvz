@@ -1,6 +1,11 @@
 const FULL_WEBP_QUALITY = 0.92;
 const HEIC_INTERMEDIATE_QUALITY = 0.96;
-const BLUR_SIZE = 32;
+const DISPLAY_WIDTH = 96;
+const DISPLAY_HEIGHT = 112;
+const DISPLAY_2X_WIDTH = DISPLAY_WIDTH * 2;
+const DISPLAY_2X_HEIGHT = DISPLAY_HEIGHT * 2;
+const PLACEHOLDER_WIDTH = 64;
+const PLACEHOLDER_HEIGHT = 75;
 
 const HEIC_EXTENSIONS = new Set(["heic", "heif"]);
 const RAW_EXTENSIONS = new Set([
@@ -27,8 +32,10 @@ const RAW_EXTENSIONS = new Set([
 ]);
 
 export interface PreparedProfileImageUpload {
-  fullBlob: Blob;
+  displayBlob: Blob;
+  display2xBlob: Blob;
   blurBlob: Blob;
+  archiveBlob: Blob;
   previewUrl: string;
 }
 
@@ -45,19 +52,31 @@ export async function prepareProfileImageUpload(
 
   const decoded = await decodeProfileImage(file, extension);
   try {
-    const fullBlob = isWebp
+    const archiveBlob = isWebp
       ? new Blob([file], { type: "image/webp" })
       : await imageBitmapToWebp(decoded.bitmap, FULL_WEBP_QUALITY);
+    const displayBlob = await imageBitmapToWebp(decoded.bitmap, FULL_WEBP_QUALITY, {
+      width: DISPLAY_WIDTH,
+      height: DISPLAY_HEIGHT,
+      cover: true,
+    });
+    const display2xBlob = await imageBitmapToWebp(decoded.bitmap, FULL_WEBP_QUALITY, {
+      width: DISPLAY_2X_WIDTH,
+      height: DISPLAY_2X_HEIGHT,
+      cover: true,
+    });
     const blurBlob = await imageBitmapToWebp(decoded.bitmap, FULL_WEBP_QUALITY, {
-      width: BLUR_SIZE,
-      height: BLUR_SIZE,
+      width: PLACEHOLDER_WIDTH,
+      height: PLACEHOLDER_HEIGHT,
       cover: true,
     });
 
     return {
-      fullBlob,
+      displayBlob,
+      display2xBlob,
       blurBlob,
-      previewUrl: URL.createObjectURL(fullBlob),
+      archiveBlob,
+      previewUrl: URL.createObjectURL(display2xBlob),
     };
   } finally {
     decoded.release();

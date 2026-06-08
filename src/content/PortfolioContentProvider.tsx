@@ -67,7 +67,8 @@ function ConvexPortfolioContentProvider({
     return withPortfolioImageUrl(
       normalizePortfolioContent(remote.content),
       remote.profileImageUrl,
-      remote.profileImageBlurUrl
+      remote.profileImageBlurUrl,
+      remote.profileImage2xUrl
     );
   }, [remote]);
 

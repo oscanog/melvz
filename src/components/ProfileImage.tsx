@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 interface ProfileImageProps {
   src: string;
   alt: string;
+  srcSet?: string;
   blurSrc?: string;
   className?: string;
   defer?: boolean;
@@ -11,6 +12,7 @@ interface ProfileImageProps {
 export function ProfileImage({
   src,
   alt,
+  srcSet,
   blurSrc,
   className = "",
   defer = false,
@@ -61,10 +63,15 @@ export function ProfileImage({
         <img
           key={visibleSrc}
           src={visibleSrc}
+          srcSet={srcSet}
+          sizes="96px"
           alt={alt}
           className="rp-photo__img"
-          loading="lazy"
+          width={96}
+          height={112}
+          loading="eager"
           decoding="async"
+          fetchPriority="high"
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(true)}
         />

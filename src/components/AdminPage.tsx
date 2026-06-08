@@ -205,15 +205,23 @@ function InlineAdmin(): ReactElement {
 
       setStatus("Uploading optimized image...");
       const uploadUrls = await generateUploadUrl({ sessionToken });
-      const fullStorageId = await uploadBlob(uploadUrls.fullUploadUrl, prepared.fullBlob);
+      const displayStorageId = await uploadBlob(uploadUrls.displayUploadUrl, prepared.displayBlob);
+      const display2xStorageId = await uploadBlob(uploadUrls.display2xUploadUrl, prepared.display2xBlob);
       const blurStorageId = await uploadBlob(uploadUrls.blurUploadUrl, prepared.blurBlob);
+      const archiveStorageId = await uploadBlob(uploadUrls.archiveUploadUrl, prepared.archiveBlob);
       const imageResult = await setProfileImage({
         sessionToken,
-        storageId: fullStorageId,
+        storageId: displayStorageId,
         blurStorageId,
+        display2xStorageId,
+        archiveStorageId,
       });
       if (typeof imageResult.profileImageUrl === "string") {
         const profileImageUrl = imageResult.profileImageUrl;
+        const profileImage2xUrl =
+          typeof imageResult.profileImage2xUrl === "string"
+            ? imageResult.profileImage2xUrl
+            : undefined;
         const profileImageBlurUrl =
           typeof imageResult.profileImageBlurUrl === "string"
             ? imageResult.profileImageBlurUrl
@@ -223,6 +231,7 @@ function InlineAdmin(): ReactElement {
           profile: {
             ...current.profile,
             imageUrl: profileImageUrl,
+            ...(profileImage2xUrl ? { image2xUrl: profileImage2xUrl } : {}),
             ...(profileImageBlurUrl ? { imageBlurUrl: profileImageBlurUrl } : {}),
           },
         }));
@@ -319,6 +328,7 @@ function InlineAdmin(): ReactElement {
               <ProfileImage
                 src={uploadPreview || draft.profile.imageUrl}
                 alt={draft.profile.imageAlt}
+                srcSet={draft.profile.image2xUrl ? `${draft.profile.imageUrl} 1x, ${draft.profile.image2xUrl} 2x` : undefined}
                 blurSrc={draft.profile.imageBlurUrl}
                 defer={loading && !uploadPreview}
               />

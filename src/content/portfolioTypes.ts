@@ -58,6 +58,7 @@ export interface PortfolioContent {
     name: string;
     title: string;
     imageUrl: string;
+    image2xUrl?: string;
     imageBlurUrl?: string;
     imageAlt: string;
     contacts: string[];

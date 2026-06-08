@@ -15,6 +15,9 @@ export const get = query({
     const profileImageUrl = doc.imageStorageId
       ? await ctx.storage.getUrl(doc.imageStorageId)
       : null;
+    const profileImage2xUrl = doc.imageDisplay2xStorageId
+      ? await ctx.storage.getUrl(doc.imageDisplay2xStorageId)
+      : null;
     const profileImageBlurUrl = doc.imageBlurStorageId
       ? await ctx.storage.getUrl(doc.imageBlurStorageId)
       : null;
@@ -22,6 +25,7 @@ export const get = query({
     return {
       content: doc.content,
       profileImageUrl,
+      profileImage2xUrl,
       profileImageBlurUrl,
       updatedAt: doc.updatedAt,
     };

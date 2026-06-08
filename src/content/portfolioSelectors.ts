@@ -5,14 +5,16 @@ import type { PortfolioContent } from "./portfolioTypes";
 export function withPortfolioImageUrl(
   content: PortfolioContent,
   imageUrl?: string | null,
-  imageBlurUrl?: string | null
+  imageBlurUrl?: string | null,
+  image2xUrl?: string | null
 ): PortfolioContent {
-  if (!imageUrl && !imageBlurUrl) return content;
+  if (!imageUrl && !imageBlurUrl && !image2xUrl) return content;
   return {
     ...content,
     profile: {
       ...content.profile,
       ...(imageUrl ? { imageUrl } : {}),
+      ...(image2xUrl ? { image2xUrl } : {}),
       ...(imageBlurUrl ? { imageBlurUrl } : {}),
     },
   };
