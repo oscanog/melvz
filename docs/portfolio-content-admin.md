@@ -25,15 +25,15 @@ npx convex run seed:portfolio '{"adminPasscode":"your-private-passcode"}'
 1. Start app: `npm run dev`.
 2. Visit `/#admin`.
 3. Enter admin passcode.
-4. Use the structured CMS sections for profile, image, contacts, skills, education, experience, projects, and game zones.
-5. Use the sticky save action when the editor shows unsaved changes.
-6. Use Advanced JSON only for import/export or emergency edits.
+4. Edit the bond-paper resume directly with inline controls.
+5. Add, delete, or reorder contacts, skills, education, experience, and projects where they appear.
+6. Save content with the top admin bar.
 
 ## Admin UX
 
-- Mobile uses one-column screens with large controls and a sticky save bar.
-- Desktop uses sidebar navigation, a main editor pane, and a status/preview rail.
-- Raw JSON is hidden under Advanced and is not the default editing path.
+- Admin sees the same resume design as the public portfolio, but editable.
+- Profile image upload is attached to the resume photo.
+- Overflow content creates additional bond-paper pages.
 - Failed saves keep the draft in the browser so edits are not lost.
 
 ## Fallback

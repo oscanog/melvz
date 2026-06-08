@@ -72,7 +72,8 @@ The public app still renders fallback content if `VITE_CONVEX_URL` is missing or
 - Admin route: `/#admin`.
 - Admin auth: Convex `ADMIN_PASSCODE` creates a short-lived session token.
 - Profile image uploads use Convex File Storage.
-- Admin editing is a mobile-first structured CMS. Raw JSON is available only under Advanced.
+- Admin editing shows the bond-paper resume with inline edit controls after login.
+- Resume content auto-flows into additional bond-paper pages when one page is not enough.
 
 ## GSD Workflow
 

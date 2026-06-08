@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { defaultPortfolio } from "./defaultPortfolio";
 
 const PORTFOLIO_KEY = "main";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
@@ -96,14 +97,19 @@ export const setProfileImage = mutation({
       .withIndex("by_key", (q) => q.eq("key", PORTFOLIO_KEY))
       .unique();
 
-    if (!existing) throw new ConvexError("Seed portfolio before uploading image");
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        imageStorageId: args.storageId,
+        updatedAt: Date.now(),
+        updatedBy: "admin",
+      });
+    } else {
+      await upsertPortfolio(ctx, defaultPortfolio, args.storageId);
+    }
 
-    await ctx.db.patch(existing._id, {
-      imageStorageId: args.storageId,
-      updatedAt: Date.now(),
-      updatedBy: "admin",
-    });
-
-    return { ok: true };
+    return {
+      ok: true,
+      profileImageUrl: await ctx.storage.getUrl(args.storageId),
+    };
   },
 });

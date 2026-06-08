@@ -29,3 +29,9 @@ Track `.gsd` planning markdown in git. Ignore database, runtime, logs, worktrees
 Status: Accepted
 
 Use a mobile-first structured CMS editor as the primary portfolio update workflow. Keep raw JSON under Advanced for import/export and emergency edits only.
+
+## D006 - Inline Resume Editing Wins For Boss Workflow
+
+Status: Accepted
+
+For the boss-facing admin flow, show the actual bond-paper resume and add inline edit controls. This supersedes a separate CMS dashboard as the primary editing experience.

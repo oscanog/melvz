@@ -14,12 +14,14 @@
 | R008 | Document content workflow. | README and agent docs explain Convex setup, admin editing, seeding, and GSD/caveman workflow. |
 | R009 | Provide a mobile-first structured admin CMS. | Admin can edit profile, image, contacts, skills, education, experience, projects, and game zones without using raw JSON. |
 | R010 | Keep admin save state visible. | Admin sees saved, unsaved, saving, failed, and validation states; failed saves do not discard edits. |
+| R011 | Support inline resume editing. | Authenticated admin edits visible resume fields directly on the bond-paper resume at `/#admin`. |
+| R012 | Auto-create more paper pages. | Resume content flows into page 2, page 3, and additional pages when one paper page is not enough. |
 
 ## Deferred
 
 | ID | Requirement | Notes |
 | --- | --- | --- |
-| R011 | Full OAuth admin auth. | Passcode session is v1; OAuth can replace it later. |
+| R013 | Full OAuth admin auth. | Passcode session is v1; OAuth can replace it later. |
 
 ## Out Of Scope
 

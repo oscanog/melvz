@@ -672,6 +672,257 @@
   }
 }
 
+/* Inline resume admin */
+.inline-admin-root {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: 100dvh;
+  background: #b5b2aa;
+  color: #111827;
+  overflow: hidden;
+  padding: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inline-admin-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #d4d4d8;
+  box-shadow: 0 8px 28px rgba(17, 24, 39, 0.14);
+}
+
+.inline-admin-bar h1,
+.inline-admin-bar p {
+  margin: 0;
+}
+
+.inline-admin-bar h1 {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.inline-admin-bar p:not(.admin-eyebrow) {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.inline-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.inline-admin-error {
+  max-width: 260px;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inline-paper-stage {
+  display: grid;
+  justify-content: center;
+  gap: 26px;
+}
+
+.inline-admin-scroll {
+  position: absolute;
+  inset: 64px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-items: flex-start;
+}
+
+.inline-resume-paper {
+  position: relative;
+  overflow: visible;
+}
+
+.inline-photo-edit {
+  position: relative;
+  cursor: pointer;
+}
+
+.inline-photo-edit input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.inline-photo-edit span {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #0f766e;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+}
+
+.inline-contact-list {
+  align-items: center;
+}
+
+.inline-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 4px;
+}
+
+.inline-section-title .rp-sh {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+
+.inline-add-button {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #99f6e4;
+  border-radius: 6px;
+  background: #ecfeff;
+  color: #0f766e;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0;
+  position: relative;
+  z-index: 4;
+}
+
+.inline-add-button--compact {
+  min-height: 22px;
+  padding: 2px 6px;
+  font-size: 9px;
+}
+
+.rp-section:hover .inline-add-button,
+.rp-header:hover .inline-add-button,
+.inline-add-button:focus {
+  opacity: 1;
+}
+
+.inline-edit-display {
+  cursor: text;
+  border-radius: 3px;
+}
+
+.inline-edit-display:hover {
+  background: rgba(15, 118, 110, 0.06);
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.16);
+}
+
+.inline-edit-field {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 3px;
+  background: rgba(15, 118, 110, 0.06);
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  line-height: inherit;
+  resize: vertical;
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.3);
+}
+
+.rp-name.inline-edit-field {
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+.inline-edit-item,
+.inline-reorder-row {
+  position: relative;
+}
+
+.inline-drag-handle,
+.inline-delete-button {
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d4d4d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #52525b;
+  padding: 0;
+  opacity: 0;
+  z-index: 6;
+}
+
+.inline-drag-handle {
+  left: -28px;
+  cursor: grab;
+}
+
+.inline-delete-button {
+  left: -52px;
+  color: #b91c1c;
+}
+
+.inline-edit-item:hover > .inline-drag-handle,
+.inline-edit-item:hover > .inline-delete-button,
+.inline-reorder-row:hover > .inline-drag-handle,
+.inline-reorder-row:hover > .inline-delete-button,
+.inline-drag-handle:focus,
+.inline-delete-button:focus {
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .inline-admin-bar {
+    display: grid;
+    align-items: start;
+  }
+
+  .inline-admin-actions {
+    justify-content: flex-start;
+  }
+
+  .inline-admin-actions .admin-primary-button,
+  .inline-admin-actions .admin-secondary-button {
+    padding: 8px 10px;
+  }
+
+  .inline-resume-paper {
+    width: min(100%, 794px);
+  }
+
+  .inline-admin-scroll {
+    inset-top: 132px;
+    inset: 132px 0 0;
+  }
+}
+
 :root {
   font-family: "IBM Plex Sans", sans-serif;
   font-size: 1em;
