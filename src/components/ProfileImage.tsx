@@ -23,6 +23,25 @@ export function ProfileImage({
 
   useEffect(() => {
     setLoaded(false);
+    if (!visibleSrc) return;
+
+    let active = true;
+    const image = new Image();
+    image.onload = () => {
+      if (active) setLoaded(true);
+    };
+    image.onerror = () => {
+      if (active) setLoaded(true);
+    };
+    image.src = visibleSrc;
+
+    if (image.complete && image.naturalWidth > 0) {
+      setLoaded(true);
+    }
+
+    return () => {
+      active = false;
+    };
   }, [visibleSrc]);
 
   return (
@@ -47,7 +66,7 @@ export function ProfileImage({
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
-          onError={() => setLoaded(false)}
+          onError={() => setLoaded(true)}
         />
       ) : null}
     </span>
