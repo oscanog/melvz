@@ -765,7 +765,7 @@
   cursor: pointer;
 }
 
-.inline-photo-edit span {
+.inline-photo-edit__upload {
   position: absolute;
   right: -8px;
   bottom: -8px;

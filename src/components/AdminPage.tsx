@@ -322,7 +322,7 @@ function InlineAdmin(): ReactElement {
                 blurSrc={draft.profile.imageBlurUrl}
                 defer={loading && !uploadPreview}
               />
-              <span><Upload size={14} /></span>
+              <span className="inline-photo-edit__upload"><Upload size={14} /></span>
               <input
                 type="file"
                 accept="image/*,.heic,.heif,.3fr,.arw,.cr2,.cr3,.dcr,.dng,.erf,.k25,.kdc,.mrw,.nef,.nrw,.orf,.pef,.raf,.raw,.rw2,.sr2,.srf,.x3f"
