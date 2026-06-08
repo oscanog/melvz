@@ -10,8 +10,9 @@ import {
   autoWalkAtom,
   zonePhaseAtom,
 } from "../../stores/gameStore";
+import { portfolioContentAtom } from "../../stores/portfolioStore";
+import { getZoneMap } from "../../content/portfolioSelectors";
 import { SVZone, GROUND_Y, PLAYER_SPAWN_X, DESK_X } from "./SVZone";
-import { SV_ZONE_MAP } from "../data/svZones";
 
 // Camera Y is fixed so the side-scroller always shows sky + buildings + ground
 const SV_CAMERA_Y     = -80;
@@ -79,7 +80,7 @@ export class Game {
   // ── Zone management ─────────────────────────────────────────────
 
   private loadZone(zoneId: string) {
-    const config = SV_ZONE_MAP[zoneId];
+    const config = getZoneMap(store.get(portfolioContentAtom))[zoneId];
     if (!config) return;
 
     if (this.currentZone) {

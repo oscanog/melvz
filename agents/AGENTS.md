@@ -17,7 +17,7 @@ This is a **developer portfolio as a 2D game** built with:
 | [Game Developer](./game-developer.md) | 🎮 Game Logic | Kaplay engine, player mechanics, entities, collisions |
 | [Frontend Developer](./frontend-developer.md) | ⚛️ React/UI | React components, modals, UI overlays, styling |
 | [Graphics Developer](./graphics-developer.md) | 🎨 Visual Effects | GLSL shaders, sprite animations, visual polish |
-| [Content Manager](./content-manager.md) | 📝 Content | JSON configs, portfolio data, text content |
+| [Content Manager](./content-manager.md) | 📝 Content | Convex portfolio data, fallback content, text content |
 | [DevOps Engineer](./devops-engineer.md) | 🚀 Build & Deploy | Vite config, build optimization, CI/CD, deployment |
 
 ## Collaboration Workflow
@@ -39,7 +39,7 @@ This is a **developer portfolio as a 2D game** built with:
                         ▼
               ┌──────────────────┐
               │  CONTENT MANAGER │
-              │  (JSON configs)  │
+              │  (Convex + fallback content) │
               └────────┬─────────┘
                        ▼
               ┌──────────────────┐
@@ -78,7 +78,7 @@ src/
 └── utils.js             # Utility functions
 
 public/
-├── configs/             # JSON data files
+├── configs/             # Legacy/static fallback JSON data files
 ├── sprites/             # Game sprites
 ├── logos/               # Technology logos
 ├── fonts/               # Custom fonts

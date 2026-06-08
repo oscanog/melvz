@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useAtom } from "jotai";
 import { appPhaseAtom, gameStateAtom } from "../stores/gameStore";
 import initGame from "../initGame";
+import { usePortfolioContent } from "../content/PortfolioContentProvider";
+import type { PortfolioContent } from "../content/portfolioTypes";
 
 /* ──────────────────────────────────────────
    Terminal command sequence
@@ -29,6 +31,7 @@ const TERMINAL_COMMANDS: TerminalEntry[] = [
 export default function LandingPage(): React.ReactElement {
   const [appPhase, setAppPhase] = useAtom(appPhaseAtom);
   const [gameState] = useAtom(gameStateAtom);
+  const { content } = usePortfolioContent();
   const startFromLoadingHash = useRef(
     typeof window !== "undefined" &&
       window.location.hash.toLowerCase() === "#loading"
@@ -247,7 +250,7 @@ export default function LandingPage(): React.ReactElement {
         onScroll={handleScroll}
       >
         <div className="lp-paper">
-          <ResumeContent />
+          <ResumeContent content={content} />
         </div>
       </div>
 
@@ -618,25 +621,24 @@ function EnterGameModal({
 /* ──────────────────────────────────────────
    Resume Content
 ────────────────────────────────────────── */
-function ResumeContent(): React.ReactElement {
+function ResumeContent({ content }: { content: PortfolioContent }): React.ReactElement {
   return (
     <>
       <header className="rp-header">
         <div className="rp-photo">
           <img
-            src="/melvin_nogoy_id.webp"
-            alt="Melvin Nogoy"
+            src={content.profile.imageUrl}
+            alt={content.profile.imageAlt}
             className="rp-photo__img"
           />
         </div>
         <div className="rp-header__text">
-          <h1 className="rp-name">MELVIN NOGOY</h1>
-          <p className="rp-title">Full Stack Developer &bull; Software Engineer</p>
+          <h1 className="rp-name">{content.profile.name}</h1>
+          <p className="rp-title">{content.profile.title}</p>
           <div className="rp-contacts">
-            <span>0994-823-5631</span>
-            <span>m.viner001@gmail.com</span>
-            <span>Tarlac City, Philippines</span>
-            <span>29 years old</span>
+            {content.profile.contacts.map((contact) => (
+              <span key={contact}>{contact}</span>
+            ))}
           </div>
         </div>
       </header>
@@ -645,141 +647,76 @@ function ResumeContent(): React.ReactElement {
 
       <section className="rp-section">
         <h2 className="rp-sh">PROFILE</h2>
-        <p className="rp-body">
-          Full Stack Developer with 5 years combined experience in software
-          engineering, QA, and system development. Specialized in bridging rapid
-          prototyping with enterprise legacy systems—building fast, maintainable
-          applications with clean implementation across government and
-          institutional sectors.
-        </p>
+        <p className="rp-body">{content.profile.summary}</p>
       </section>
 
       <div className="rp-two-col">
         <section className="rp-section">
           <h2 className="rp-sh">SKILLS</h2>
           <ul className="rp-ul">
-            <li><strong>Frontend:</strong> React, Next.js, Vue.js, TypeScript, Tailwind CSS</li>
-            <li><strong>Backend:</strong> Laravel, Rust, Django, REST API Design</li>
-            <li><strong>Desktop:</strong> Tauri (Rust-based), Electron</li>
-            <li><strong>Database:</strong> PostgreSQL, MySQL, Convex</li>
-            <li><strong>QA &amp; Ops:</strong> Manual Testing, Regression Testing, Git, CI/CD</li>
+            {content.skills.map((skillGroup) => (
+              <li key={skillGroup.label}>
+                <strong>{skillGroup.label}:</strong>{" "}
+                {skillGroup.items.join(", ")}
+              </li>
+            ))}
           </ul>
         </section>
 
         <section className="rp-section">
           <h2 className="rp-sh">EDUCATION</h2>
-          <div className="rp-job">
-            <div className="rp-job__head">
-              <strong>BS Information Technology</strong>
-              <span className="rp-date">Apr 2026</span>
+          {content.education.map((item) => (
+            <div className="rp-job" key={`${item.degree}-${item.period}`}>
+              <div className="rp-job__head">
+                <strong>{item.degree}</strong>
+                <span className="rp-date">{item.period}</span>
+              </div>
+              <p className="rp-body-sm">
+                {item.school}<br />{item.detail}
+              </p>
             </div>
-            <p className="rp-body-sm">
-              General De Jesus College (2022–2026)<br />Capstone II remaining
-            </p>
-          </div>
+          ))}
         </section>
       </div>
 
       <section className="rp-section">
         <h2 className="rp-sh">EXPERIENCE</h2>
-
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>Full Stack Developer — Provincial Government Digital Transformation</strong>
-            <span className="rp-date">Nov 2025 – Mar 2026</span>
+        {content.experiences.map((experience) => (
+          <div className="rp-job" key={`${experience.role}-${experience.period}`}>
+            <div className="rp-job__head">
+              <strong>{experience.role}</strong>
+              <span className="rp-date">{experience.period}</span>
+            </div>
+            <p className="rp-body-sm">{experience.description}</p>
           </div>
-          <p className="rp-body-sm">
-            Architected production-grade systems for Province of Tarlac,
-            transitioning from rapid Convex prototypes to Laravel 12 enterprise
-            infrastructure serving 18 municipalities.
-          </p>
-        </div>
-
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>Quality Assurance Tester — Hooli Software International</strong>
-            <span className="rp-date">Jun 2025 – Nov 2025</span>
-          </div>
-          <p className="rp-body-sm">
-            Designed and executed manual test cases for enterprise web
-            applications; logged, tracked, and verified defects during feature
-            and regression cycles.
-          </p>
-        </div>
-
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>Full Stack Developer — Project-Based &amp; Institutional</strong>
-            <span className="rp-date">2021 – 2025</span>
-          </div>
-          <p className="rp-body-sm">
-            Built end-to-end systems including Library Inventory Management,
-            Offline Attendance Loggers, and QA management tools using Vue.js,
-            Laravel, React, and Tauri.
-          </p>
-        </div>
-
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>IT Support / Technical Assistant</strong>
-            <span className="rp-date">2019 – 2020</span>
-          </div>
-          <p className="rp-body-sm">
-            Troubleshot hardware, software, and network issues; documented
-            technical processes and supported staff operations.
-          </p>
-        </div>
+        ))}
       </section>
 
       <section className="rp-section">
         <h2 className="rp-sh">PROJECTS</h2>
 
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>PGO Connect — Provincial Governor's Office DMS</strong>
-            <span className="rp-date">Feb – Mar 2026</span>
+        {content.projects.featured.map((project) => (
+          <div className="rp-job" key={`${project.name}-${project.period}`}>
+            <div className="rp-job__head">
+              <strong>{project.name}</strong>
+              <span className="rp-date">{project.period}</span>
+            </div>
+            <p className="rp-job__stack">{project.stack}</p>
+            <p className="rp-body-sm">{project.description}</p>
           </div>
-          <p className="rp-job__stack">Next.js 16, Laravel 11, PostgreSQL, SMS/Facebook APIs</p>
-          <p className="rp-body-sm">
-            Enhanced a mission-critical citizen service platform processing
-            1000+ monthly requests across 18 municipalities.
-          </p>
-        </div>
-
-        <div className="rp-job">
-          <div className="rp-job__head">
-            <strong>PPDO Next — Provincial Planning &amp; Development Platform</strong>
-            <span className="rp-date">Nov 2025 – Jan 2026</span>
-          </div>
-          <p className="rp-job__stack">Next.js 16, Laravel 12, Convex, PostgreSQL</p>
-          <p className="rp-body-sm">
-            Architected a government-grade financial planning ecosystem with
-            4-tier hierarchical allocation, RBAC security, and zero-downtime
-            migration from Convex to PostgreSQL.
-          </p>
-        </div>
+        ))}
 
         <div className="rp-two-col-sm">
-          <div className="rp-job">
-            <div className="rp-job__head"><strong>Offline Kiosk Logger</strong><span className="rp-date">2024</span></div>
-            <p className="rp-job__stack">Tauri, React</p>
-            <p className="rp-body-sm">Offline-first attendance logging with printable report generation.</p>
-          </div>
-          <div className="rp-job">
-            <div className="rp-job__head"><strong>BugCake QA Tool</strong><span className="rp-date">2024</span></div>
-            <p className="rp-job__stack">React, Convex</p>
-            <p className="rp-body-sm">Centralized test case management platform for QA workflows.</p>
-          </div>
-          <div className="rp-job">
-            <div className="rp-job__head"><strong>Library Inventory System</strong><span className="rp-date">2024</span></div>
-            <p className="rp-job__stack">Vue.js, Laravel</p>
-            <p className="rp-body-sm">End-to-end system for tracking books, students, and borrowing activities.</p>
-          </div>
-          <div className="rp-job">
-            <div className="rp-job__head"><strong>Attendance Logger</strong><span className="rp-date">2023</span></div>
-            <p className="rp-job__stack">Vue.js, Laravel API</p>
-            <p className="rp-body-sm">Cross-platform attendance tracking with admin dashboard and reporting.</p>
-          </div>
+          {content.projects.compact.map((project) => (
+            <div className="rp-job" key={`${project.name}-${project.period}`}>
+              <div className="rp-job__head">
+                <strong>{project.name}</strong>
+                <span className="rp-date">{project.period}</span>
+              </div>
+              <p className="rp-job__stack">{project.stack}</p>
+              <p className="rp-body-sm">{project.description}</p>
+            </div>
+          ))}
         </div>
       </section>
     </>

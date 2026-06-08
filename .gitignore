@@ -22,3 +22,27 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# GSD runtime / local-only
+.gsd/completed-units*.json
+.gsd/STATE.md
+.gsd/gsd.db*
+.gsd/metrics.json
+.gsd/activity/
+.gsd/runtime/
+.gsd/worktrees/
+.gsd/parallel/
+.gsd/journal/
+.gsd/reports/
+.gsd/exec/
+.gsd/debug/
+.gsd/doctor-history.jsonl
+.gsd/event-log.jsonl
+.gsd/routing-history.json
+.gsd/milestones/**/continue.md
+.gsd/milestones/**/*-CONTINUE.md
+
+# Local environment
+.env
+.env.*
+!.env.example

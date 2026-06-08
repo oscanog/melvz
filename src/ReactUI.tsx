@@ -11,9 +11,11 @@ import {
   currentZoneIdAtom,
 } from "./stores/gameStore";
 import LandingPage from "./components/LandingPage";
-import { SV_ZONE_MAP } from "./game/data/svZones";
 import type { ZoneConfig } from "./game/data/svZones";
 import initGame, { getGameInstance } from "./initGame";
+import AdminPage from "./components/AdminPage";
+import { usePortfolioContent } from "./content/PortfolioContentProvider";
+import { getZoneMap } from "./content/portfolioSelectors";
 
 /** Detect touch capability once at mount */
 function useIsMobile(): boolean {
@@ -32,6 +34,15 @@ export default function ReactUI(): React.ReactElement {
   const setZonePhase   = useSetAtom(zonePhaseAtom);
   const [zoneTransitionZoneId, setZoneTransitionZoneId] = useState<string | null>(null);
   const prevZoneRef = useRef<string | null>(null);
+  const { content } = usePortfolioContent();
+  const zoneMap = getZoneMap(content);
+  const [hash, setHash] = useState(() => window.location.hash.toLowerCase());
+
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash.toLowerCase());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   useEffect(() => {
     if (appPhase !== "game") return;
@@ -53,6 +64,10 @@ export default function ReactUI(): React.ReactElement {
     return () => clearTimeout(t);
   }, [appPhase, zoneId]);
 
+  if (hash === "#admin") {
+    return <AdminPage />;
+  }
+
   // Show landing page until game phase is active
   if (appPhase !== "game") {
     return <LandingPage />;
@@ -73,10 +88,10 @@ export default function ReactUI(): React.ReactElement {
       {/* Game HUD */}
       <div className="game-hud">
         {/* Zone year + role badge — top center */}
-        <ZoneBadge />
+        <ZoneBadge zoneMap={zoneMap} />
 
         {/* Auto / Manual toggle — top right */}
-        <AutoWalkToggle />
+        <AutoWalkToggle zoneMap={zoneMap} />
 
         {/* Back to Portfolio button */}
         <button
@@ -98,7 +113,7 @@ export default function ReactUI(): React.ReactElement {
       </div>
 
       {/* Zone navigator (all devices) */}
-      <ZoneNavigator />
+      <ZoneNavigator zoneMap={zoneMap} />
 
       {zoneTransitionZoneId && (
         <ZoneTransitionOverlay zoneId={zoneTransitionZoneId} />
@@ -118,9 +133,9 @@ export default function ReactUI(): React.ReactElement {
 /* ──────────────────────────────────────────
    Zone Badge — shows year + role above game
 ────────────────────────────────────────── */
-function ZoneBadge() {
+function ZoneBadge({ zoneMap }: { zoneMap: Record<string, ZoneConfig> }) {
   const zoneId = useAtomValue(currentZoneIdAtom);
-  const config = SV_ZONE_MAP[zoneId];
+  const config = zoneMap[zoneId];
   if (!config) return null;
 
   return (
@@ -135,7 +150,7 @@ function ZoneBadge() {
 /* ──────────────────────────────────────────
    Auto / Manual toggle button
 ────────────────────────────────────────── */
-function AutoWalkToggle() {
+function AutoWalkToggle({ zoneMap }: { zoneMap: Record<string, ZoneConfig> }) {
   const [autoWalk, setAutoWalk] = useAtom(autoWalkAtom);
   const [zonePhase, setZonePhase] = useAtom(zonePhaseAtom);
   const zoneId = useAtomValue(currentZoneIdAtom);
@@ -143,7 +158,7 @@ function AutoWalkToggle() {
   const handleClick = () => {
     if (zonePhase === "paused") {
       // Continue → load next zone
-      const config = SV_ZONE_MAP[zoneId];
+      const config = zoneMap[zoneId];
       if (config?.right) {
         // Trigger zone change via atom — Game.ts listens
         setAutoWalk(true);
@@ -254,9 +269,13 @@ function AutoWalkHint() {
 /* ──────────────────────────────────────────
    Zone navigator component
 ────────────────────────────────────────── */
-function ZoneNavigator(): React.ReactElement {
+function ZoneNavigator({
+  zoneMap,
+}: {
+  zoneMap: Record<string, ZoneConfig>;
+}): React.ReactElement {
   const zoneId = useAtomValue(currentZoneIdAtom);
-  const config = SV_ZONE_MAP[zoneId];
+  const config = zoneMap[zoneId];
   const setMobileInput = useSetAtom(mobileInputAtom);
 
   const goToZone = (targetZoneId?: string) => {
