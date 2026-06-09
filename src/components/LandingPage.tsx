@@ -2,6 +2,7 @@ import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import type { PortfolioContent } from "../content/portfolioTypes";
 import { ProfileImage } from "./ProfileImage";
 import { MysteryHotspot } from "./MysteryLore";
+import { PdfDownloadButton } from "./PdfDownloadButton";
 
 /* ------------------------------------------
    Main LandingPage component
@@ -13,7 +14,8 @@ export default function LandingPage(): React.ReactElement {
     <div className="lp-root">
       {/* -- Resume Paper -- */}
       <div className="lp-scroll">
-        <div className="lp-paper">
+        <div className="lp-paper" id="resume-paper">
+          <PdfDownloadButton paperId="resume-paper" />
           <ResumeContent content={content} imageLoading={loading} />
         </div>
       </div>

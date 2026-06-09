@@ -4438,3 +4438,89 @@ html {
   font-family: var(--font-mono);
 }
 
+/* ==========================================================================
+   PDF Download Button (M009)
+   ========================================================================== */
+
+.pdf-dl-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #374151;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.pdf-dl-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: scale(1.05);
+}
+
+.pdf-dl-btn:active {
+  transform: scale(0.95);
+}
+
+.pdf-dl-btn--generating {
+  opacity: 1;
+  cursor: wait;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.pdf-dl-btn--done {
+  opacity: 1;
+  color: #059669;
+  border-color: #059669;
+}
+
+.pdf-dl-btn--error {
+  opacity: 1;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.pdf-dl-btn__spinner {
+  animation: pdf-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --- PDF Export Mode: hide interactive/UI elements --- */
+.pdf-exporting .pdf-dl-btn,
+.pdf-exporting .mystery-hotspot__indicator,
+.pdf-exporting .resume-ai-chat-wrapper {
+  display: none !important;
+}
+
+.pdf-exporting .mystery-hotspot {
+  cursor: default !important;
+  box-shadow: none !important;
+}
+
+/* Force solid background for the paper during capture */
+.pdf-exporting.lp-paper {
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+@media print {
+  .pdf-dl-btn,
+  .resume-ai-chat-wrapper {
+    display: none !important;
+  }
+}
