@@ -1,6 +1,7 @@
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import type { PortfolioContent } from "../content/portfolioTypes";
 import { ProfileImage } from "./ProfileImage";
+import { MysteryHotspot } from "./MysteryLore";
 
 /* ------------------------------------------
    Main LandingPage component
@@ -65,10 +66,12 @@ function ResumeContent({
           <h2 className="rp-sh">SKILLS</h2>
           <ul className="rp-ul">
             {content.skills.map((skillGroup) => (
-              <li key={skillGroup.label}>
-                <strong>{skillGroup.label}:</strong>{" "}
-                {skillGroup.items.join(", ")}
-              </li>
+              <MysteryHotspot key={skillGroup.label} lore={skillGroup.mysteryLore}>
+                <li>
+                  <strong>{skillGroup.label}:</strong>{" "}
+                  {skillGroup.items.join(", ")}
+                </li>
+              </MysteryHotspot>
             ))}
           </ul>
         </section>
@@ -76,15 +79,17 @@ function ResumeContent({
         <section className="rp-section">
           <h2 className="rp-sh">EDUCATION</h2>
           {content.education.map((item) => (
-            <div className="rp-job" key={`${item.degree}-${item.period}`}>
-              <div className="rp-job__head">
-                <strong>{item.degree}</strong>
-                <span className="rp-date">{item.period}</span>
+            <MysteryHotspot key={`${item.degree}-${item.period}`} lore={item.mysteryLore}>
+              <div className="rp-job">
+                <div className="rp-job__head">
+                  <strong>{item.degree}</strong>
+                  <span className="rp-date">{item.period}</span>
+                </div>
+                <p className="rp-body-sm">
+                  {item.school}<br />{item.detail}
+                </p>
               </div>
-              <p className="rp-body-sm">
-                {item.school}<br />{item.detail}
-              </p>
-            </div>
+            </MysteryHotspot>
           ))}
         </section>
       </div>
@@ -92,13 +97,15 @@ function ResumeContent({
       <section className="rp-section">
         <h2 className="rp-sh">EXPERIENCE</h2>
         {content.experiences.map((experience) => (
-          <div className="rp-job" key={`${experience.role}-${experience.period}`}>
-            <div className="rp-job__head">
-              <strong>{experience.role}</strong>
-              <span className="rp-date">{experience.period}</span>
+          <MysteryHotspot key={`${experience.role}-${experience.period}`} lore={experience.mysteryLore}>
+            <div className="rp-job">
+              <div className="rp-job__head">
+                <strong>{experience.role}</strong>
+                <span className="rp-date">{experience.period}</span>
+              </div>
+              <p className="rp-body-sm">{experience.description}</p>
             </div>
-            <p className="rp-body-sm">{experience.description}</p>
-          </div>
+          </MysteryHotspot>
         ))}
       </section>
 
@@ -106,19 +113,8 @@ function ResumeContent({
         <h2 className="rp-sh">PROJECTS</h2>
 
         {content.projects.featured.map((project) => (
-          <div className="rp-job" key={`${project.name}-${project.period}`}>
-            <div className="rp-job__head">
-              <strong>{project.name}</strong>
-              <span className="rp-date">{project.period}</span>
-            </div>
-            <p className="rp-job__stack">{project.stack}</p>
-            <p className="rp-body-sm">{project.description}</p>
-          </div>
-        ))}
-
-        <div className="rp-two-col-sm">
-          {content.projects.compact.map((project) => (
-            <div className="rp-job" key={`${project.name}-${project.period}`}>
+          <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
+            <div className="rp-job">
               <div className="rp-job__head">
                 <strong>{project.name}</strong>
                 <span className="rp-date">{project.period}</span>
@@ -126,6 +122,21 @@ function ResumeContent({
               <p className="rp-job__stack">{project.stack}</p>
               <p className="rp-body-sm">{project.description}</p>
             </div>
+          </MysteryHotspot>
+        ))}
+
+        <div className="rp-two-col-sm">
+          {content.projects.compact.map((project) => (
+            <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
+              <div className="rp-job">
+                <div className="rp-job__head">
+                  <strong>{project.name}</strong>
+                  <span className="rp-date">{project.period}</span>
+                </div>
+                <p className="rp-job__stack">{project.stack}</p>
+                <p className="rp-body-sm">{project.description}</p>
+              </div>
+            </MysteryHotspot>
           ))}
         </div>
       </section>

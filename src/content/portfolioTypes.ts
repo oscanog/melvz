@@ -1,6 +1,7 @@
 export interface ResumeSkillGroup {
   label: string;
   items: string[];
+  mysteryLore?: string;
 }
 
 export interface EducationItem {
@@ -8,12 +9,14 @@ export interface EducationItem {
   school: string;
   period: string;
   detail: string;
+  mysteryLore?: string;
 }
 
 export interface ExperienceItem {
   role: string;
   period: string;
   description: string;
+  mysteryLore?: string;
 }
 
 export interface PortfolioProject {
@@ -22,6 +25,7 @@ export interface PortfolioProject {
   stack: string;
   description: string;
   links?: { label: string; url: string }[];
+  mysteryLore?: string;
 }
 
 export interface SocialLink {
