@@ -14,6 +14,7 @@ import LandingPage from "./components/LandingPage";
 import type { ZoneConfig } from "./game/data/svZones";
 import initGame, { getGameInstance } from "./initGame";
 import AdminPage from "./components/AdminPage";
+import { HistoryDetailPage, HistoryPage } from "./components/HistoryPage";
 import { usePortfolioContent } from "./content/PortfolioContentProvider";
 import { getZoneMap } from "./content/portfolioSelectors";
 
@@ -36,10 +37,10 @@ export default function ReactUI(): React.ReactElement {
   const prevZoneRef = useRef<string | null>(null);
   const { content } = usePortfolioContent();
   const zoneMap = getZoneMap(content);
-  const [hash, setHash] = useState(() => window.location.hash.toLowerCase());
+  const [hash, setHash] = useState(() => window.location.hash);
 
   useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash.toLowerCase());
+    const onHashChange = () => setHash(window.location.hash);
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -64,8 +65,16 @@ export default function ReactUI(): React.ReactElement {
     return () => clearTimeout(t);
   }, [appPhase, zoneId]);
 
-  if (hash === "#admin") {
+  const lowerHash = hash.toLowerCase();
+  if (lowerHash === "#admin") {
     return <AdminPage />;
+  }
+  if (lowerHash === "#admin/history") {
+    return <HistoryPage />;
+  }
+  if (lowerHash.startsWith("#admin/history/")) {
+    const revisionId = hash.slice("#admin/history/".length);
+    return <HistoryDetailPage revisionId={revisionId} />;
   }
 
   // Show landing page until game phase is active

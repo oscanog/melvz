@@ -22,7 +22,9 @@
 - Deploy: `npx convex deploy`
 - Frontend env var: `VITE_CONVEX_URL`
 - Backend env var: `ADMIN_PASSCODE`
-- Admin route: `/#admin`
+- Admin editor route: `/#admin`
+- Admin history route: `/#admin/history`
+- Admin history detail route: `/#admin/history/<revisionId>`
 
 ## Verification
 

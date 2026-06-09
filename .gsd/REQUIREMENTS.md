@@ -16,6 +16,9 @@
 | R010 | Keep admin save state visible. | Admin sees saved, unsaved, saving, failed, and validation states; failed saves do not discard edits. |
 | R011 | Support inline resume editing. | Authenticated admin edits visible resume fields directly on the bond-paper resume at `/#admin`. |
 | R012 | Auto-create more paper pages. | Resume content flows into page 2, page 3, and additional pages when one paper page is not enough. |
+| R014 | Track resume save history. | Every successful admin resume save requires a message and creates a Convex revision with commit-like metadata, parent revision, and a content snapshot. |
+| R015 | Support admin rollback. | Authenticated admin can restore a previous revision, including resume content and profile image storage IDs. |
+| R016 | Show GitHub-like history UI. | `/#admin` has a `Show history` button that opens `/#admin/history`; commit rows open `/#admin/history/<revisionId>` with changed files and JSON line diffs. |
 
 ## Deferred
 

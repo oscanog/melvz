@@ -41,3 +41,9 @@ For the boss-facing admin flow, show the actual bond-paper resume and add inline
 Status: Accepted
 
 Use Vercel for production hosting. Vercel runs `npx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd 'npm run build'` so Convex functions and the Vite frontend deploy together. Remove the GitHub Pages workflow.
+
+## D008 - Convex Commit History For Resume Rollback
+
+Status: Accepted
+
+Use Convex revision snapshots for GitHub-like resume history and rollback. Each admin save requires a message and creates a commit-like history entry with a parent revision pointer. The v1 feature uses `/#admin/history` and `/#admin/history/<revisionId>` to mimic GitHub commits and commit details, including changed files and simple JSON line diffs, but does not write real GitHub repository commits.

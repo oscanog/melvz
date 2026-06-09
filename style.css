@@ -748,6 +748,448 @@
   align-items: flex-start;
 }
 
+.inline-admin-scroll--history {
+  display: block;
+  background: #0d1117;
+  color: #d8dee9;
+}
+
+.admin-history-page {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: 28px 16px 56px;
+}
+
+.admin-history-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #30363d;
+}
+
+.admin-history-heading h2 {
+  margin: 0;
+  color: #f0f6fc;
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+
+.admin-history-branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  color: #f0f6fc;
+  font-weight: 700;
+}
+
+.admin-history-group {
+  position: relative;
+  padding-left: 34px;
+}
+
+.admin-history-group::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 37px;
+  bottom: -18px;
+  width: 2px;
+  background: #30363d;
+}
+
+.admin-history-date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 24px 0 12px -34px;
+  color: #8b949e;
+  font-size: 0.9rem;
+}
+
+.admin-history-node {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #8b949e;
+  border-radius: 999px;
+  background: #0d1117;
+}
+
+.admin-history-card {
+  overflow: hidden;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+}
+
+.admin-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #30363d;
+}
+
+.admin-history-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-history-main h3 {
+  margin: 0 0 8px;
+  color: #f0f6fc;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.admin-history-main p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  color: #8b949e;
+  font-size: 0.84rem;
+}
+
+.admin-history-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #f0f6fc;
+  color: #0969da;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.admin-history-kind,
+.admin-history-restore-source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid #30363d;
+  border-radius: 999px;
+  background: #0d1117;
+  color: #c9d1d9;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-history-kind--image {
+  color: #a5d6ff;
+}
+
+.admin-history-kind--rollback {
+  color: #d2a8ff;
+}
+
+.admin-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-history-actions code {
+  color: #a5d6ff;
+  font-weight: 800;
+}
+
+.admin-history-actions .admin-icon-button,
+.admin-history-actions .admin-secondary-button {
+  min-height: 36px;
+  border-color: #30363d;
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+.admin-history-actions .admin-icon-button {
+  width: 36px;
+  height: 36px;
+}
+
+.admin-history-rollback {
+  padding: 0 10px;
+}
+
+.admin-history-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 140px;
+  color: #8b949e;
+}
+
+.admin-history-load {
+  margin: 24px auto 0;
+  border-color: #30363d;
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+.admin-history-root {
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+.admin-history-topbar {
+  background: #161b22;
+  border-bottom-color: #30363d;
+  color: #c9d1d9;
+}
+
+.admin-history-topbar h1,
+.admin-history-topbar p {
+  color: #f0f6fc;
+}
+
+.admin-history-scroll {
+  position: absolute;
+  inset: 64px 0 0;
+  overflow-y: auto;
+}
+
+.admin-history-title-button,
+.admin-history-hash {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-history-title-button {
+  padding: 0;
+}
+
+.admin-history-title-button:hover,
+.admin-history-hash:hover,
+.admin-history-back:hover {
+  color: #58a6ff;
+  text-decoration: underline;
+}
+
+.admin-history-hash {
+  color: #a5d6ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 800;
+}
+
+.admin-history-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #8b949e;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-commit-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #30363d;
+}
+
+.admin-commit-header h2 {
+  margin: 0 0 10px;
+  color: #f0f6fc;
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+
+.admin-commit-meta-card,
+.admin-changed-files-card,
+.admin-file-diff {
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+}
+
+.admin-commit-meta-card {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: 18px 0;
+  padding: 12px 14px;
+  color: #8b949e;
+  font-size: 0.9rem;
+}
+
+.admin-commit-meta-card code {
+  color: #a5d6ff;
+  font-weight: 800;
+}
+
+.admin-changed-files-card {
+  margin-bottom: 18px;
+  padding: 14px;
+}
+
+.admin-changed-files-card h3 {
+  margin: 0 0 12px;
+  color: #f0f6fc;
+  font-size: 1rem;
+}
+
+.admin-changed-files-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-changed-files-card li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c9d1d9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+}
+
+.admin-diff-stat {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 800;
+}
+
+.admin-diff-stat--add {
+  color: #3fb950;
+}
+
+.admin-diff-stat--remove {
+  color: #f85149;
+}
+
+.admin-file-diff {
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.admin-file-diff header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #30363d;
+  background: #161b22;
+}
+
+.admin-file-diff header div,
+.admin-file-diff header p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-file-diff h3 {
+  margin: 0;
+  color: #f0f6fc;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.admin-diff-lines {
+  overflow-x: auto;
+  background: #0d1117;
+  font-size: 0.82rem;
+}
+
+.admin-diff-line {
+  display: grid;
+  grid-template-columns: 48px 48px minmax(720px, 1fr);
+  min-height: 22px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.admin-diff-line span {
+  padding: 3px 8px;
+  color: #6e7681;
+  text-align: right;
+  border-right: 1px solid rgba(48, 54, 61, 0.55);
+  user-select: none;
+}
+
+.admin-diff-line code {
+  display: block;
+  padding: 3px 10px;
+  color: #c9d1d9;
+  white-space: pre;
+}
+
+.admin-diff-line--added {
+  background: rgba(46, 160, 67, 0.15);
+}
+
+.admin-diff-line--added code {
+  color: #aff5b4;
+}
+
+.admin-diff-line--removed {
+  background: rgba(248, 81, 73, 0.15);
+}
+
+.admin-diff-line--removed code {
+  color: #ffdcd7;
+}
+
+.admin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.admin-dialog {
+  width: min(100%, 440px);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 20px;
+  color: #0f172a;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+}
+
+.admin-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.admin-dialog p {
+  margin: 0 0 16px;
+  color: #64748b;
+}
+
+.admin-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
 .inline-resume-paper {
   position: relative;
   overflow: visible;
@@ -920,6 +1362,38 @@
   .inline-admin-scroll {
     inset-top: 132px;
     inset: 132px 0 0;
+  }
+
+  .admin-history-scroll {
+    inset: 132px 0 0;
+  }
+
+  .admin-history-heading {
+    align-items: flex-start;
+  }
+
+  .admin-commit-header {
+    display: grid;
+  }
+
+  .admin-history-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-history-actions {
+    flex-wrap: wrap;
+  }
+
+  .admin-history-rollback {
+    width: 100%;
+  }
+
+  .admin-dialog-actions {
+    display: grid;
+  }
+
+  .admin-diff-line {
+    grid-template-columns: 38px 38px minmax(560px, 1fr);
   }
 }
 

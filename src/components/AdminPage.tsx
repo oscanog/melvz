@@ -3,7 +3,6 @@ import {
   useRef,
   useState,
   type ChangeEvent,
-  type FormEvent,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
@@ -12,6 +11,7 @@ import { useMutation } from "convex/react";
 import {
   AlertCircle,
   CheckCircle2,
+  History,
   GripVertical,
   Loader2,
   LogOut,
@@ -23,9 +23,9 @@ import {
 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { isConvexConfigured } from "../convex/OptionalConvexProvider";
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import { prepareProfileImageUpload } from "../utils/profileImageProcessing";
+import { AdminGate } from "./AdminGate";
 import { ProfileImage } from "./ProfileImage";
 import type {
   EducationItem,
@@ -35,7 +35,6 @@ import type {
   ResumeSkillGroup,
 } from "../content/portfolioTypes";
 
-const SESSION_KEY = "melvz-admin-session";
 const SUPPORTED_PROFILE_IMAGE_EXTENSIONS = new Set([
   "jpg",
   "jpeg",
@@ -72,36 +71,27 @@ type SaveState = "saved" | "dirty" | "saving" | "failed" | "invalid";
 type ProjectBucket = "featured" | "compact";
 
 export default function AdminPage(): ReactElement {
-  if (!isConvexConfigured) return <AdminUnavailable />;
-  return <InlineAdmin />;
-}
-
-function AdminUnavailable(): ReactElement {
   return (
-    <main className="admin-root admin-root--center">
-      <section className="admin-login-card">
-        <div className="admin-brand">
-          <span className="admin-brand__mark">M</span>
-          <div>
-            <h1>Portfolio Admin</h1>
-            <p>Convex is not configured. Add `VITE_CONVEX_URL` and restart Vite.</p>
-          </div>
-        </div>
-        <a href="/" className="admin-link">Return to portfolio</a>
-      </section>
-    </main>
+    <AdminGate loginMessage="Login to edit the same bond-paper resume.">
+      {({ sessionToken, logout }) => (
+        <InlineAdmin sessionToken={sessionToken} logout={logout} />
+      )}
+    </AdminGate>
   );
 }
 
-function InlineAdmin(): ReactElement {
+function InlineAdmin({
+  sessionToken,
+  logout,
+}: {
+  sessionToken: string;
+  logout: () => void;
+}): ReactElement {
   const { content, source, loading } = usePortfolioContent();
-  const createSession = useMutation(api.admin.createSession);
   const updatePortfolio = useMutation(api.admin.updatePortfolio);
   const generateUploadUrl = useMutation(api.admin.generateProfileImageUploadUrl);
   const setProfileImage = useMutation(api.admin.setProfileImage);
 
-  const [passcode, setPasscode] = useState("");
-  const [sessionToken, setSessionToken] = useState(() => sessionStorage.getItem(SESSION_KEY) ?? "");
   const [draft, setDraft] = useState<PortfolioContent>(content);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -109,6 +99,8 @@ function InlineAdmin(): ReactElement {
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [uploadPreview, setUploadPreview] = useState("");
   const [dragKey, setDragKey] = useState<string | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (dirty) return;
@@ -130,36 +122,31 @@ function InlineAdmin(): ReactElement {
     setStatus("Unsaved changes");
   };
 
-  const login = async (event: FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    try {
-      const result = await createSession({ passcode });
-      sessionStorage.setItem(SESSION_KEY, result.token);
-      setSessionToken(result.token);
-      setPasscode("");
-      setStatus("Admin session active");
-      setSaveState("saved");
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Login failed");
-      setSaveState("failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const save = async () => {
+  const openSaveDialog = () => {
     if (errors.length > 0) {
       setSaveState("invalid");
       setStatus("Fix highlighted resume fields before saving");
+      return;
+    }
+    setSaveMessage("");
+    setSaveDialogOpen(true);
+  };
+
+  const save = async () => {
+    const message = saveMessage.trim();
+    if (!message) {
+      setSaveState("invalid");
+      setStatus("Save message is required");
       return;
     }
     setBusy(true);
     setSaveState("saving");
     setStatus("Saving...");
     try {
-      await updatePortfolio({ sessionToken, content: draft });
+      await updatePortfolio({ sessionToken, content: draft, message });
       setDirty(false);
+      setSaveDialogOpen(false);
+      setSaveMessage("");
       setSaveState("saved");
       setStatus(`Saved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
     } catch (error) {
@@ -170,17 +157,16 @@ function InlineAdmin(): ReactElement {
     }
   };
 
+  const showHistory = () => {
+    if (dirty && !window.confirm("Leave editor and discard unsaved edits?")) return;
+    window.location.hash = "#admin/history";
+  };
+
   const reset = () => {
     setDraft(content);
     setDirty(false);
     setSaveState("saved");
     setStatus("Loaded latest resume");
-  };
-
-  const logout = () => {
-    sessionStorage.removeItem(SESSION_KEY);
-    setSessionToken("");
-    setPasscode("");
   };
 
   const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -263,38 +249,6 @@ function InlineAdmin(): ReactElement {
     return storageId as Id<"_storage">;
   };
 
-  if (!sessionToken) {
-    return (
-      <main className="admin-root admin-root--center">
-        <section className="admin-login-card">
-          <div className="admin-brand">
-            <span className="admin-brand__mark">M</span>
-            <div>
-              <h1>Portfolio Admin</h1>
-              <p>Login to edit the same bond-paper resume.</p>
-            </div>
-          </div>
-          <form className="admin-login" onSubmit={login}>
-            <label className="admin-field">
-              <span>Admin passcode</span>
-              <input
-                value={passcode}
-                type="password"
-                onChange={(event) => setPasscode(event.target.value)}
-                autoComplete="current-password"
-                placeholder="Enter passcode"
-              />
-            </label>
-            <button className="admin-primary-button" type="submit" disabled={busy || !passcode}>
-              {busy ? <Loader2 size={18} /> : <CheckCircle2 size={18} />}
-              Login
-            </button>
-          </form>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <main className="inline-admin-root">
       <header className="inline-admin-bar">
@@ -306,11 +260,15 @@ function InlineAdmin(): ReactElement {
         <div className="inline-admin-actions">
           <StatusBadge state={saveState} label={status} />
           {errors[0] && <span className="inline-admin-error">{errors[0]}</span>}
+          <button className="admin-secondary-button" type="button" onClick={showHistory} disabled={busy}>
+            <History size={18} />
+            Show history
+          </button>
           <button className="admin-secondary-button" type="button" onClick={reset} disabled={busy}>
             <RotateCcw size={18} />
             Reset
           </button>
-          <button className="admin-primary-button" type="button" onClick={save} disabled={busy || !dirty || errors.length > 0}>
+          <button className="admin-primary-button" type="button" onClick={openSaveDialog} disabled={busy || !dirty || errors.length > 0}>
             {saveState === "saving" ? <Loader2 size={18} /> : <Save size={18} />}
             Save
           </button>
@@ -560,7 +518,69 @@ function InlineAdmin(): ReactElement {
           </section>
         </article>
       </div>
+      {saveDialogOpen && (
+        <SaveMessageDialog
+          message={saveMessage}
+          busy={busy}
+          onMessageChange={setSaveMessage}
+          onCancel={() => {
+            if (busy) return;
+            setSaveDialogOpen(false);
+            setSaveMessage("");
+          }}
+          onSave={save}
+        />
+      )}
     </main>
+  );
+}
+
+function SaveMessageDialog({
+  message,
+  busy,
+  onMessageChange,
+  onCancel,
+  onSave,
+}: {
+  message: string;
+  busy: boolean;
+  onMessageChange: (message: string) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="admin-dialog-backdrop" role="presentation">
+      <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="save-message-title">
+        <div>
+          <p className="admin-eyebrow">Commit changes</p>
+          <h2 id="save-message-title">Save message</h2>
+          <p>Use a short title for this resume revision.</p>
+        </div>
+        <label className="admin-field">
+          <span>Message</span>
+          <input
+            value={message}
+            onChange={(event) => onMessageChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && message.trim()) onSave();
+              if (event.key === "Escape") onCancel();
+            }}
+            autoFocus
+            maxLength={120}
+            placeholder="Update work experience"
+          />
+        </label>
+        <div className="admin-dialog-actions">
+          <button className="admin-secondary-button" type="button" disabled={busy} onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="admin-primary-button" type="button" disabled={busy || !message.trim()} onClick={onSave}>
+            {busy ? <Loader2 size={18} /> : <Save size={18} />}
+            Save
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 

@@ -26,3 +26,4 @@ Portfolio details must become editable through Convex instead of hardcoded React
 - `M001-convex-portfolio-admin`: Convex content source, admin editor, image upload, seed path, docs, and local AI workflow setup.
 - `M002-mobile-first-admin-redesign`: Modern structured mobile-first CMS editor replacing raw JSON as the primary admin workflow.
 - `M003-inline-resume-admin`: Inline visual editing directly on the bond-paper resume for authenticated admins.
+- `M004-resume-history-rollback`: GitHub-like Convex revision history and admin rollback for resume content and images.
