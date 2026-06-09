@@ -1,7 +1,7 @@
 "use node";
 
 import { ConvexError, v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { decryptSecret, hashToken } from "./aiCrypto";
 import type { Id } from "./_generated/dataModel";
@@ -374,12 +374,15 @@ export const sendMessage = action({
 
     const threadId: Id<"aiChatThreads"> = await ctx.runMutation(
       internal.aiSettings.createUserMessage,
-      {
-        visitorKeyHash,
-        threadId: args.threadId,
-        content: message,
-      },
+      { visitorKeyHash, threadId: args.threadId, content: message },
     );
+
+    if (!args.threadId) {
+      await ctx.scheduler.runAfter(0, internal.aiAgent.generateThreadTitle, {
+        threadId,
+        message,
+      });
+    }
 
     const recentMessages = await ctx.runQuery(internal.aiSettings.getRecentMessages, {
       visitorKeyHash,
@@ -585,6 +588,13 @@ export const sendAdminMessage = action({
       { visitorKeyHash, threadId: args.threadId, content: message },
     );
 
+    if (!args.threadId) {
+      await ctx.scheduler.runAfter(0, internal.aiAgent.generateThreadTitle, {
+        threadId,
+        message,
+      });
+    }
+
     const recentMessages = await ctx.runQuery(internal.aiSettings.getRecentMessages, {
       visitorKeyHash,
       threadId,
@@ -720,5 +730,54 @@ export const loadChatSession = action({
       visitorKeyHash,
       threadId: args.threadId,
     });
+  },
+});
+
+export const generateThreadTitle = internalAction({
+  args: {
+    threadId: v.id("aiChatThreads"),
+    message: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const settings = await ctx.runQuery(internal.aiSettings.getSettingsForAction, {});
+      if (!settings.isEnabled || !settings.encryptedApiKey) return;
+
+      const apiKey = decryptSecret(settings.encryptedApiKey);
+      const prompt = `Based on the following user message, generate a very short, concise title for the chat session (max 4-5 words). Do NOT use quotes. If it's a greeting, summarize it simply.\n\nMessage: "${args.message}"`;
+
+      const response = await fetch(`${settings.baseUrl.replace(/\/$/, "")}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: settings.defaultModel,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+          max_tokens: 15,
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) return;
+
+      const payload = await response.json();
+      const choices = Array.isArray(payload.choices) ? payload.choices : [];
+      if (!choices[0]?.message?.content) return;
+
+      let title = choices[0].message.content.trim();
+      title = title.replace(/^["']|["']$/g, ""); // strip quotes
+
+      if (title) {
+        await ctx.runMutation(internal.aiSettings.updateThreadTitle, {
+          threadId: args.threadId,
+          title,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to generate thread title:", err);
+    }
   },
 });

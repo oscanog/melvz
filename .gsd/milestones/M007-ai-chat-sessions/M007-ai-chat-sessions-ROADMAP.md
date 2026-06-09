@@ -39,10 +39,17 @@ A "New Chat" button starts a fresh thread.
 - [x] Auto-generate the save message based on AI tool proposals (e.g., "AI: edit Education — Updated graduation date").
 - [x] `AdminPage` handles the actual `admin.updatePortfolio` mutation to persist changes.
 
+## Slice 5 — Auto-Generated AI Session Naming
+
+- [x] When a new chat session begins, use the DeepSeek LLM (via an internal Convex action) to read the very first user message.
+- [x] Automatically generate a short, 4-5 word summary title.
+- [x] Update the `aiChatThreads` table so the sidebar displays this human-readable title instead of a raw message truncation.
+
 ## Files Expected To Change
 
 | File | Change |
 |------|--------|
-| `convex/aiSettings.ts` | Add `listThreads` and `getThreadMessages` public queries |
+| `convex/aiSettings.ts` | Add `updateThreadTitle` mutation |
+| `convex/aiAgent.ts` | Add `generateThreadTitle` internal action, call it on new threads |
 | `src/components/ai/ResumeAiChat.tsx` | Session history modal, thread switching, new chat button |
 | `style.css` | Session list modal styles |

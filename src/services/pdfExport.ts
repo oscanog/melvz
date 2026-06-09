@@ -8,16 +8,8 @@ import { jsPDF } from "jspdf";
    assembles a multi-page A4 PDF.
 ────────────────────────────────────────── */
 
-// Long Bond paper dimensions in mm (8.5" × 13")
+// Long Bond paper width in mm (8.5")
 const PAGE_W_MM = 215.9;
-const PAGE_H_MM = 330.2;
-
-// CSS px per mm at 96 DPI
-const PX_PER_MM = 96 / 25.4;
-
-// Page size in CSS px
-const PAGE_W_PX = PAGE_W_MM * PX_PER_MM; // ~816
-const PAGE_H_PX = PAGE_H_MM * PX_PER_MM; // ~1249
 
 export type PdfQuality = "2x" | "3x" | "4x";
 

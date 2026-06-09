@@ -253,6 +253,18 @@ export const saveEncryptedKey = internalMutation({
   },
 });
 
+export const updateThreadTitle = internalMutation({
+  args: {
+    threadId: v.id("aiChatThreads"),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.threadId, {
+      title: args.title.slice(0, 100), // Max 100 chars
+    });
+  },
+});
+
 export const createUserMessage = internalMutation({
   args: {
     visitorKeyHash: v.string(),

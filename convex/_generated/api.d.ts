@@ -17,6 +17,7 @@ import type * as aiSettings from "../aiSettings.js";
 import type * as defaultPortfolio from "../defaultPortfolio.js";
 import type * as portfolio from "../portfolio.js";
 import type * as seed from "../seed.js";
+import type * as seedMystery from "../seedMystery.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   defaultPortfolio: typeof defaultPortfolio;
   portfolio: typeof portfolio;
   seed: typeof seed;
+  seedMystery: typeof seedMystery;
 }>;
 
 /**
