@@ -7,12 +7,14 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import {
   AlertCircle,
+  Bot,
   CheckCircle2,
   History,
   GripVertical,
+  KeyRound,
   Loader2,
   LogOut,
   Plus,
@@ -91,6 +93,9 @@ function InlineAdmin({
   const updatePortfolio = useMutation(api.admin.updatePortfolio);
   const generateUploadUrl = useMutation(api.admin.generateProfileImageUploadUrl);
   const setProfileImage = useMutation(api.admin.setProfileImage);
+  const aiSettings = useQuery(api.aiSettings.getAdminSettings, { sessionToken });
+  const updateAiSettings = useMutation(api.aiSettings.updateSettings);
+  const saveProviderKey = useAction(api.aiSecrets.saveProviderKey);
 
   const [draft, setDraft] = useState<PortfolioContent>(content);
   const [dirty, setDirty] = useState(false);
@@ -101,6 +106,7 @@ function InlineAdmin({
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
   useEffect(() => {
     if (dirty) return;
@@ -263,6 +269,10 @@ function InlineAdmin({
           <button className="admin-secondary-button" type="button" onClick={showHistory} disabled={busy}>
             <History size={18} />
             Show history
+          </button>
+          <button className="admin-secondary-button" type="button" onClick={() => setAiDialogOpen(true)} disabled={busy}>
+            <Bot size={18} />
+            AI settings
           </button>
           <button className="admin-secondary-button" type="button" onClick={reset} disabled={busy}>
             <RotateCcw size={18} />
@@ -531,7 +541,243 @@ function InlineAdmin({
           onSave={save}
         />
       )}
+      {aiDialogOpen && (
+        <AiSettingsDialog
+          sessionToken={sessionToken}
+          settings={aiSettings}
+          updateSettings={updateAiSettings}
+          saveProviderKey={saveProviderKey}
+          onClose={() => setAiDialogOpen(false)}
+        />
+      )}
     </main>
+  );
+}
+
+type AdminAiSettings = {
+  hasApiKey: boolean;
+  apiKeyPreview: string | null;
+  defaultModel: string;
+  temperature: number;
+  maxOutputTokens: number;
+  dailyAnonymousMessageLimit: number;
+  dailyAdminMessageLimit: number;
+  monthlyTokenLimit: number;
+  enabledScopes: string[];
+  enabledSkills: string[];
+  isEnabled: boolean;
+  showPublicChat: boolean;
+};
+
+type UpdateAiSettings = (args: {
+  sessionToken: string;
+  defaultModel: "deepseek-v4-flash" | "deepseek-v4-pro";
+  temperature: number;
+  maxOutputTokens: number;
+  dailyAnonymousMessageLimit: number;
+  dailyAdminMessageLimit: number;
+  monthlyTokenLimit: number;
+  enabledScopes: string[];
+  enabledSkills: string[];
+  isEnabled: boolean;
+  showPublicChat: boolean;
+}) => Promise<unknown>;
+
+type SaveProviderKey = (args: {
+  sessionToken: string;
+  apiKey: string;
+}) => Promise<{ apiKeyPreview: string }>;
+
+function AiSettingsDialog({
+  sessionToken,
+  settings,
+  updateSettings,
+  saveProviderKey,
+  onClose,
+}: {
+  sessionToken: string;
+  settings: AdminAiSettings | undefined;
+  updateSettings: UpdateAiSettings;
+  saveProviderKey: SaveProviderKey;
+  onClose: () => void;
+}) {
+  const [apiKey, setApiKey] = useState("");
+  const [defaultModel, setDefaultModel] = useState<"deepseek-v4-flash" | "deepseek-v4-pro">(
+    settings?.defaultModel === "deepseek-v4-pro" ? "deepseek-v4-pro" : "deepseek-v4-flash"
+  );
+  const [temperature, setTemperature] = useState(settings?.temperature ?? 0.4);
+  const [maxOutputTokens, setMaxOutputTokens] = useState(settings?.maxOutputTokens ?? 900);
+  const [dailyAnonymousMessageLimit, setDailyAnonymousMessageLimit] = useState(settings?.dailyAnonymousMessageLimit ?? 30);
+  const [dailyAdminMessageLimit, setDailyAdminMessageLimit] = useState(settings?.dailyAdminMessageLimit ?? 80);
+  const [monthlyTokenLimit, setMonthlyTokenLimit] = useState(settings?.monthlyTokenLimit ?? 250000);
+  const [isEnabled, setIsEnabled] = useState(settings?.isEnabled ?? true);
+  const [showPublicChat, setShowPublicChat] = useState(settings?.showPublicChat ?? true);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    if (!settings) return;
+    setDefaultModel(settings.defaultModel === "deepseek-v4-pro" ? "deepseek-v4-pro" : "deepseek-v4-flash");
+    setTemperature(settings.temperature);
+    setMaxOutputTokens(settings.maxOutputTokens);
+    setDailyAnonymousMessageLimit(settings.dailyAnonymousMessageLimit);
+    setDailyAdminMessageLimit(settings.dailyAdminMessageLimit);
+    setMonthlyTokenLimit(settings.monthlyTokenLimit);
+    setIsEnabled(settings.isEnabled);
+    setShowPublicChat(settings.showPublicChat);
+  }, [settings]);
+
+  const saveConfig = async () => {
+    setBusy(true);
+    setStatus("Saving AI settings...");
+    try {
+      await updateSettings({
+        sessionToken,
+        defaultModel,
+        temperature,
+        maxOutputTokens,
+        dailyAnonymousMessageLimit,
+        dailyAdminMessageLimit,
+        monthlyTokenLimit,
+        enabledScopes: settings?.enabledScopes ?? ["resume", "projects", "skills", "experience", "contact", "game"],
+        enabledSkills: settings?.enabledSkills ?? ["general_chat", "resume_lookup"],
+        isEnabled,
+        showPublicChat,
+      });
+      setStatus("AI settings saved");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "AI settings save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rotateKey = async () => {
+    const key = apiKey.trim();
+    if (!key) return;
+    setBusy(true);
+    setStatus("Rotating provider key...");
+    try {
+      const result = await saveProviderKey({ sessionToken, apiKey: key });
+      setApiKey("");
+      setStatus(`Provider key saved ${result.apiKeyPreview}`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Provider key save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="admin-dialog-backdrop" role="presentation">
+      <section className="admin-dialog admin-ai-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-settings-title">
+        <div>
+          <p className="admin-eyebrow">AI resume chat</p>
+          <h2 id="ai-settings-title">AI settings</h2>
+          <p>Provider key stays encrypted in Convex. Public chat reads portfolio context only.</p>
+        </div>
+
+        {!settings ? (
+          <div className="admin-history-empty">Loading AI settings...</div>
+        ) : (
+          <>
+            <div className="admin-ai-status-row">
+              <span className={`admin-status-badge admin-status-badge--${settings.hasApiKey ? "saved" : "failed"}`}>
+                <KeyRound size={16} />
+                {settings.hasApiKey ? `Key ${settings.apiKeyPreview}` : "Key missing"}
+              </span>
+              <span className={`admin-status-badge admin-status-badge--${isEnabled && showPublicChat ? "saved" : "dirty"}`}>
+                <Bot size={16} />
+                {isEnabled && showPublicChat ? "Public chat on" : "Public chat off"}
+              </span>
+            </div>
+
+            <label className="admin-field">
+              <span>New provider key</span>
+              <input
+                value={apiKey}
+                onChange={(event) => setApiKey(event.target.value)}
+                type="password"
+                placeholder="Paste DeepSeek API key"
+              />
+            </label>
+
+            <div className="admin-dialog-actions admin-ai-actions">
+              <button className="admin-secondary-button" type="button" disabled={busy || !apiKey.trim()} onClick={rotateKey}>
+                <KeyRound size={18} />
+                Rotate key
+              </button>
+            </div>
+
+            <div className="admin-ai-grid">
+              <label className="admin-field">
+                <span>Model</span>
+                <select value={defaultModel} onChange={(event) => setDefaultModel(event.target.value as "deepseek-v4-flash" | "deepseek-v4-pro")}>
+                  <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                  <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+                </select>
+              </label>
+              <NumberField label="Temperature" value={temperature} min={0} max={2} step={0.1} onChange={setTemperature} />
+              <NumberField label="Max output tokens" value={maxOutputTokens} min={200} max={4000} onChange={setMaxOutputTokens} />
+              <NumberField label="Public daily limit" value={dailyAnonymousMessageLimit} min={1} max={500} onChange={setDailyAnonymousMessageLimit} />
+              <NumberField label="Admin daily limit" value={dailyAdminMessageLimit} min={1} max={1000} onChange={setDailyAdminMessageLimit} />
+              <NumberField label="Monthly tokens" value={monthlyTokenLimit} min={1000} max={5000000} onChange={setMonthlyTokenLimit} />
+            </div>
+
+            <label className="admin-ai-toggle">
+              <input type="checkbox" checked={isEnabled} onChange={(event) => setIsEnabled(event.target.checked)} />
+              AI enabled
+            </label>
+            <label className="admin-ai-toggle">
+              <input type="checkbox" checked={showPublicChat} onChange={(event) => setShowPublicChat(event.target.checked)} />
+              Show public chat badge
+            </label>
+          </>
+        )}
+
+        {status && <p className="admin-ai-status">{status}</p>}
+
+        <div className="admin-dialog-actions">
+          <button className="admin-secondary-button" type="button" disabled={busy} onClick={onClose}>
+            Close
+          </button>
+          <button className="admin-primary-button" type="button" disabled={busy || !settings} onClick={saveConfig}>
+            {busy ? <Loader2 size={18} /> : <Save size={18} />}
+            Save AI settings
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step ?? 1}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
   );
 }
 

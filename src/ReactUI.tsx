@@ -15,6 +15,7 @@ import type { ZoneConfig } from "./game/data/svZones";
 import initGame, { getGameInstance } from "./initGame";
 import AdminPage from "./components/AdminPage";
 import { HistoryDetailPage, HistoryPage } from "./components/HistoryPage";
+import { ResumeAiChat } from "./components/ai/ResumeAiChat";
 import { usePortfolioContent } from "./content/PortfolioContentProvider";
 import { getZoneMap } from "./content/portfolioSelectors";
 
@@ -79,7 +80,12 @@ export default function ReactUI(): React.ReactElement {
 
   // Show landing page until game phase is active
   if (appPhase !== "game") {
-    return <LandingPage />;
+    return (
+      <>
+        <LandingPage />
+        <ResumeAiChat />
+      </>
+    );
   }
 
   // Fallback loading screen (rarely shown)
@@ -135,6 +141,7 @@ export default function ReactUI(): React.ReactElement {
       {isModalOpen && modalData?.type === "sv-projects" && (
         <SVMonitorModal zone={modalData.zone as ZoneConfig} onClose={handleModalClose} />
       )}
+      <ResumeAiChat />
     </>
   );
 }

@@ -9,6 +9,11 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as aiAgent from "../aiAgent.js";
+import type * as aiContext from "../aiContext.js";
+import type * as aiCrypto from "../aiCrypto.js";
+import type * as aiSecrets from "../aiSecrets.js";
+import type * as aiSettings from "../aiSettings.js";
 import type * as defaultPortfolio from "../defaultPortfolio.js";
 import type * as portfolio from "../portfolio.js";
 import type * as seed from "../seed.js";
@@ -21,6 +26,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  aiAgent: typeof aiAgent;
+  aiContext: typeof aiContext;
+  aiCrypto: typeof aiCrypto;
+  aiSecrets: typeof aiSecrets;
+  aiSettings: typeof aiSettings;
   defaultPortfolio: typeof defaultPortfolio;
   portfolio: typeof portfolio;
   seed: typeof seed;
