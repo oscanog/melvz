@@ -29,6 +29,7 @@ import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import { prepareProfileImageUpload } from "../utils/profileImageProcessing";
 import { AdminGate } from "./AdminGate";
 import { ProfileImage } from "./ProfileImage";
+import { ResumeAiChat } from "./ai/ResumeAiChat";
 import type {
   EducationItem,
   ExperienceItem,
@@ -541,6 +542,45 @@ function InlineAdmin({
           onSave={save}
         />
       )}
+      <ResumeAiChat
+        adminSessionToken={sessionToken}
+        hasPendingSave={dirty}
+        onApplyDraft={(patched, revisionHint) => {
+          setDraft(patched);
+          setDirty(true);
+          setSaveState("dirty");
+          setStatus("AI applied — review & save");
+          setSaveMessage(revisionHint);
+        }}
+        onSaveDraft={async (message) => {
+          if (errors.length > 0) {
+            setSaveState("invalid");
+            setStatus("Fix highlighted resume fields before saving");
+            throw new Error("Validation failed");
+          }
+          setBusy(true);
+          setSaveState("saving");
+          setStatus("Saving...");
+          try {
+            await updatePortfolio({
+              sessionToken,
+              content: draft,
+              message,
+              createdBy: "ai-admin",
+            });
+            setDirty(false);
+            setSaveMessage("");
+            setSaveState("saved");
+            setStatus(`Saved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+          } catch (err) {
+            setSaveState("failed");
+            setStatus(err instanceof Error ? err.message : "Save failed");
+            throw err;
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
       {aiDialogOpen && (
         <AiSettingsDialog
           sessionToken={sessionToken}

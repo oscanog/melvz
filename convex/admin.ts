@@ -103,7 +103,8 @@ async function createRevision(
   snapshot: PortfolioDocLike,
   kind: RevisionKind,
   message: string,
-  restoredFromRevisionId?: Id<"portfolioRevisions">
+  restoredFromRevisionId?: Id<"portfolioRevisions">,
+  createdBy?: string
 ) {
   const parentRevision = await getLatestRevision(ctx);
   await ctx.db.insert("portfolioRevisions", {
@@ -113,7 +114,7 @@ async function createRevision(
     kind,
     message,
     createdAt: Date.now(),
-    createdBy: "admin",
+    createdBy: createdBy ?? "admin",
     ...(parentRevision ? { parentRevisionId: parentRevision._id } : {}),
     ...(restoredFromRevisionId ? { restoredFromRevisionId } : {}),
   });
@@ -233,6 +234,7 @@ export const updatePortfolio = mutation({
     sessionToken: v.string(),
     content: v.any(),
     message: v.string(),
+    createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await assertAdmin(ctx, args.sessionToken);
@@ -240,7 +242,7 @@ export const updatePortfolio = mutation({
     if (!message) throw new ConvexError("Save message is required");
 
     const snapshot = await upsertPortfolio(ctx, args.content);
-    await createRevision(ctx, snapshot, "save", message);
+    await createRevision(ctx, snapshot, "save", message, undefined, args.createdBy);
     return { ok: true };
   },
 });

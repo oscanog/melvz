@@ -43,6 +43,17 @@ async function assertAdmin(ctx: QueryCtx | MutationCtx, token: string) {
   }
 }
 
+export const validateAdminSession = internalQuery({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args): Promise<boolean> => {
+    const session = await ctx.db
+      .query("adminSessions")
+      .withIndex("by_token", (q) => q.eq("token", args.sessionToken))
+      .unique();
+    return Boolean(session && session.expiresAt >= Date.now());
+  },
+});
+
 async function readSettings(ctx: QueryCtx | MutationCtx) {
   return await ctx.db
     .query("aiSettings")
@@ -413,5 +424,55 @@ export const saveBlockedUsage = internalMutation({
       status: "blocked",
       createdAt: Date.now(),
     });
+  },
+});
+
+export const listVisitorThreads = internalQuery({
+  args: {
+    visitorKeyHash: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const cap = Math.min(Math.max(args.limit ?? 30, 1), 50);
+    const threads = await ctx.db
+      .query("aiChatThreads")
+      .withIndex("by_visitorKeyHash", (q) => q.eq("visitorKeyHash", args.visitorKeyHash))
+      .order("desc")
+      .take(cap);
+
+    return threads.map((t) => ({
+      _id: t._id,
+      title: t.title,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
+    }));
+  },
+});
+
+export const getVisitorThreadMessages = internalQuery({
+  args: {
+    visitorKeyHash: v.string(),
+    threadId: v.id("aiChatThreads"),
+  },
+  handler: async (ctx, args) => {
+    const thread = await ctx.db.get(args.threadId);
+    if (!thread || thread.visitorKeyHash !== args.visitorKeyHash) {
+      throw new ConvexError("Thread not found");
+    }
+
+    const messages = await ctx.db
+      .query("aiChatMessages")
+      .withIndex("by_threadId_and_createdAt", (q) => q.eq("threadId", args.threadId))
+      .order("asc")
+      .take(200);
+
+    return messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        model: m.model,
+        createdAt: m.createdAt,
+      }));
   },
 });
