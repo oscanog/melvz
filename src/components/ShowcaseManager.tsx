@@ -136,42 +136,55 @@ function ShowcaseManagerInner({ sessionToken, logout }: { sessionToken: string; 
           ) : showcases.length === 0 ? (
             <div className="admin-history-empty">No showcases found. Create one!</div>
           ) : (
-            <section className="admin-history-group">
-              <div className="admin-history-date">
-                <span className="admin-history-node" />
-                <span>Active and Inactive Projects</span>
-              </div>
-              <div className="admin-history-card">
-                {showcases.map((sc) => (
-                  <article className="admin-history-row" key={sc._id} style={{ opacity: sc.isActive ? 1 : 0.6 }}>
-                    <div className="admin-history-main">
-                      <h3>
-                        <button
-                          className="admin-history-title-button"
-                          type="button"
-                          onClick={() => handleEdit(sc)}
-                        >
-                          {sc.name}
-                        </button>
-                      </h3>
-                      <p>
-                        <span className="admin-history-avatar">S</span>
-                        /{sc.slug}
-                        <span className={`admin-history-kind admin-history-kind--${sc.isActive ? "save" : "rollback"}`}>
-                          {sc.isActive ? "active" : "inactive"}
-                        </span>
-                      </p>
+            <div className="showcase-grid">
+              {showcases.map((sc) => (
+                <article className={`showcase-card ${!sc.isActive ? "showcase-card--inactive" : ""}`} key={sc._id}>
+                  <div className="showcase-card__browser">
+                    <div className="showcase-card__browser-bar">
+                      <span className="dot dot--red" />
+                      <span className="dot dot--yellow" />
+                      <span className="dot dot--green" />
+                      <span className="browser-url">{sc.url.replace("https://", "")}</span>
                     </div>
-                    <div className="admin-history-actions">
-                      <a
-                        href={sc.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="admin-history-hash"
-                        title="Open Demo URL"
-                      >
-                        Visit
-                      </a>
+                    <div className="showcase-card__browser-content">
+                      {sc.thumbnailUrl ? (
+                        <img src={sc.thumbnailUrl} alt={sc.name} className="showcase-card__img" />
+                      ) : (
+                        <div className="showcase-card__placeholder">
+                          <div className="placeholder-icon">🌐</div>
+                          <span className="placeholder-text">{sc.name}</span>
+                          <span className="placeholder-sub">No Thumbnail</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="showcase-card__body">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                      <h3 onClick={() => handleEdit(sc)} style={{ cursor: "pointer" }}>{sc.name}</h3>
+                      <span className={`admin-history-kind admin-history-kind--${sc.isActive ? "save" : "rollback"}`}>
+                        {sc.isActive ? "active" : "inactive"}
+                      </span>
+                    </div>
+                    <p className="showcase-card__slug">/{sc.slug}</p>
+                    <p className="showcase-card__desc">{sc.description || "No description provided."}</p>
+                    <div className="showcase-card__stack">
+                      {sc.stack.split(",").map((s) => (
+                        <span key={s} className="stack-badge">{s.trim()}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="showcase-card__actions">
+                    <a
+                      href={sc.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="showcase-card__btn-visit"
+                    >
+                      Visit site
+                    </a>
+                    <div className="showcase-card__btn-group">
                       <button
                         className="admin-icon-button"
                         type="button"
@@ -197,10 +210,10 @@ function ShowcaseManagerInner({ sessionToken, logout }: { sessionToken: string; 
                         <Trash2 size={16} color="#ef4444" />
                       </button>
                     </div>
-                  </article>
-                ))}
-              </div>
-            </section>
+                  </div>
+                </article>
+              ))}
+            </div>
           )}
         </section>
       </div>
@@ -261,6 +274,15 @@ function ShowcaseManagerInner({ sessionToken, logout }: { sessionToken: string; 
                 value={formData.stack || ""}
                 onChange={(e) => setFormData({ ...formData, stack: e.target.value })}
                 placeholder="e.g. React 19, Vite 8, Convex"
+              />
+            </div>
+
+            <div className="admin-field">
+              <span>Thumbnail URL</span>
+              <input
+                value={formData.thumbnailUrl || ""}
+                onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
+                placeholder="e.g. /mock-thumb.png or absolute URL"
               />
             </div>
 
