@@ -4,6 +4,7 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const isConvexConfigured = Boolean(convexClient);
 
 export function OptionalConvexProvider({

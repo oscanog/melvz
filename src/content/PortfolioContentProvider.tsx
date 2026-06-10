@@ -89,6 +89,7 @@ function ConvexPortfolioContentProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePortfolioContent(): PortfolioContentValue {
   return useContext(PortfolioContentContext);
 }

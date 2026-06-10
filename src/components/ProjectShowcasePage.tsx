@@ -18,7 +18,7 @@ export function ProjectShowcasePage({ slug }: { slug: string }): React.ReactElem
     return (
       <div className="showcase-not-found">
         <h1>Project Not Found</h1>
-        <p>The project "{slug}" does not exist or is inactive.</p>
+        <p>The project &quot;{slug}&quot; does not exist or is inactive.</p>
         <button onClick={() => (window.location.hash = "")}>← Back to Portfolio</button>
       </div>
     );

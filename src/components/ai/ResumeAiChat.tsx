@@ -568,8 +568,6 @@ export function ResumeAiChat({
     setShowHistory(false);
   };
 
-  if (settings?.showPublicChat === false && !isAdminMode) return null;
-
   const submit = async (event?: FormEvent<HTMLFormElement>, retryText?: string) => {
     event?.preventDefault();
     const chatContent = (retryText ?? input).trim();
@@ -709,6 +707,8 @@ export function ResumeAiChat({
       }),
     );
   }, []);
+
+  if (settings?.showPublicChat === false && !isAdminMode) return null;
 
   return (
     <div className="resume-ai">

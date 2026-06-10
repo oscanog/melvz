@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { isModalOpenAtom, modalDataAtom } from "../../stores/gameStore";
 
 interface Skill {
@@ -104,10 +104,10 @@ export function SkillTreeButton({ isMobile }: SkillTreeButtonProps): React.React
   const [isOpen, setIsModalOpen] = useAtom(isModalOpenAtom);
   const [, setModalData] = useAtom(modalDataAtom);
 
-  const openSkillTree = () => {
+  const openSkillTree = useCallback(() => {
     setModalData({ type: "skilltree" });
     setIsModalOpen(true);
-  };
+  }, [setModalData, setIsModalOpen]);
 
   // Keyboard shortcut K (desktop only)
   useEffect(() => {
@@ -118,7 +118,7 @@ export function SkillTreeButton({ isMobile }: SkillTreeButtonProps): React.React
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, openSkillTree]);
 
   return (
     <button

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Save, X, LogOut, Layout, Loader2 } from "lucide-react";
+import { Edit, Eye, EyeOff, Plus, Trash2, Save, X, LogOut, Layout, Loader2 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { AdminGate } from "./AdminGate";
