@@ -122,7 +122,7 @@ function ResumeContent({
         {content.projects.featured.map((project) => {
           const sc = showcases.find((s) => project.name.includes(s.name) || s.name.includes(project.name));
           return (
-            <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
+            <MysteryHotspot key={`${project.name}-${project.period}`} lore={sc ? undefined : project.mysteryLore}>
               <div className="rp-job">
                 <div className="rp-job__head">
                   <strong>
@@ -147,7 +147,7 @@ function ResumeContent({
           {content.projects.compact.map((project) => {
             const sc = showcases.find((s) => project.name.includes(s.name) || s.name.includes(project.name));
             return (
-              <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
+              <MysteryHotspot key={`${project.name}-${project.period}`} lore={sc ? undefined : project.mysteryLore}>
                 <div className="rp-job">
                   <div className="rp-job__head">
                     <strong>
