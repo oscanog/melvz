@@ -150,10 +150,14 @@ function ShowcaseManagerInner({ sessionToken, logout }: { sessionToken: string; 
                       {sc.thumbnailUrl ? (
                         <img src={sc.thumbnailUrl} alt={sc.name} className="showcase-card__img" />
                       ) : (
-                        <div className="showcase-card__placeholder">
-                          <div className="placeholder-icon">🌐</div>
-                          <span className="placeholder-text">{sc.name}</span>
-                          <span className="placeholder-sub">No Thumbnail</span>
+                        <div className="showcase-card__iframe-wrapper">
+                          <iframe
+                            src={sc.url}
+                            className="showcase-card__iframe"
+                            title={`${sc.name} Live Preview`}
+                            scrolling="no"
+                            loading="lazy"
+                          />
                         </div>
                       )}
                     </div>

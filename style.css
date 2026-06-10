@@ -4799,6 +4799,25 @@ html {
   gap: 4px;
 }
 
+.showcase-card__iframe-wrapper {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+.showcase-card__iframe {
+  width: 400%;
+  height: 400%;
+  transform: scale(0.25);
+  transform-origin: 0 0;
+  border: none;
+  pointer-events: none;
+}
+
 .showcase-modal-overlay {
   position: fixed;
   top: 0;
