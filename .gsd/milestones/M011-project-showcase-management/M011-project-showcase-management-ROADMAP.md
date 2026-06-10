@@ -34,33 +34,33 @@ Single Convex table `projectShowcases` becomes the source of truth for iframe UR
 ## Slices
 
 ### Slice 1 — Backend CRUD
-- [ ] Add `projectShowcases` table + indexes to `convex/schema.ts`.
-- [ ] Create `convex/showcases.ts` with:
+- [x] Add `projectShowcases` table + indexes to `convex/schema.ts`.
+- [x] Create `convex/showcases.ts` with:
   - `list` query (all entries, for admin).
   - `getBySlug` query (active only, for public page).
   - `upsert` mutation (create or update, admin-gated).
   - `remove` mutation (hard delete, admin-gated).
   - `toggleActive` mutation (flip `isActive`, admin-gated).
-- [ ] Seed migration: insert the existing Luxurious entry into the new table.
+- [x] Seed migration: insert the existing Luxurious entry into the new table.
 
 ### Slice 2 — Admin UI at `#admin/showcases`
-- [ ] Add "Showcases" button to admin navbar in `AdminPage.tsx`.
-- [ ] Hash route `#admin/showcases` renders a dedicated `ShowcaseManager` component.
-- [ ] **List view**: Table with columns: Name, Slug, URL, Active toggle, Edit/Delete buttons. Sorted by `sortOrder`.
-- [ ] **Add/Edit form**: Modal with inputs for all fields. Slug auto-generated from name but editable. URL validated as https.
-- [ ] **Delete**: Confirmation prompt before hard delete.
+- [x] Add "Showcases" button to admin navbar in `AdminPage.tsx`.
+- [x] Hash route `#admin/showcases` renders a dedicated `ShowcaseManager` component.
+- [x] **List view**: Table with columns: Name, Slug, URL, Active toggle, Edit/Delete buttons. Sorted by `sortOrder`.
+- [x] **Add/Edit form**: Modal with inputs for all fields. Slug auto-generated from name but editable. URL validated as https.
+- [x] **Delete**: Confirmation prompt before hard delete.
 
 ### Slice 3 — Frontend Refactor
-- [ ] `ProjectShowcasePage.tsx`: Replace `PROJECT_REGISTRY` dict with `useQuery(api.showcases.getBySlug, { slug })`.
-- [ ] Show loading skeleton while query resolves.
-- [ ] Show styled 404 if query returns `null`.
-- [ ] Remove `demoSlug` from `PortfolioProject` type in `portfolioTypes.ts`.
-- [ ] Update `LandingPage.tsx`: project name links now look up the showcase table (or simply link if the project name matches a known slug via a lightweight query).
+- [x] `ProjectShowcasePage.tsx`: Replace `PROJECT_REGISTRY` dict with `useQuery(api.showcases.getBySlug, { slug })`.
+- [x] Show loading skeleton while query resolves.
+- [x] Show styled 404 if query returns `null`.
+- [x] Remove `demoSlug` from `PortfolioProject` type in `portfolioTypes.ts`.
+- [x] Update `LandingPage.tsx`: project name links now look up the showcase table (or simply link if the project name matches a known slug via a lightweight query).
 
 ### Slice 4 — Cleanup
-- [ ] Delete `convex/addLuxuriousProject.ts` (one-off seed script, no longer needed).
-- [ ] Remove `demoSlug` from `defaultPortfolio.ts` Luxurious entry.
-- [ ] Remove the Luxurious entry's `demoSlug` from production Convex data.
+- [x] Delete `convex/addLuxuriousProject.ts` (one-off seed script, no longer needed).
+- [x] Remove `demoSlug` from `defaultPortfolio.ts` Luxurious entry.
+- [x] Remove the Luxurious entry's `demoSlug` from production Convex data.
 
 ---
 
