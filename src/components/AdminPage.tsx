@@ -17,6 +17,7 @@ import {
   KeyRound,
   Loader2,
   LogOut,
+  MonitorPlay,
   Plus,
   RotateCcw,
   Save,
@@ -270,6 +271,10 @@ function InlineAdmin({
           <button className="admin-secondary-button" type="button" onClick={showHistory} disabled={busy}>
             <History size={18} />
             Show history
+          </button>
+          <button className="admin-secondary-button" type="button" onClick={() => (window.location.hash = "#admin/showcases")} disabled={busy}>
+            <MonitorPlay size={18} />
+            Showcases
           </button>
           <button className="admin-secondary-button" type="button" onClick={() => setAiDialogOpen(true)} disabled={busy}>
             <Bot size={18} />

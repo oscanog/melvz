@@ -25,7 +25,6 @@ export interface PortfolioProject {
   stack: string;
   description: string;
   links?: { label: string; url: string }[];
-  demoSlug?: string;
   mysteryLore?: string;
 }
 

@@ -1,3 +1,5 @@
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { usePortfolioContent } from "../content/PortfolioContentProvider";
 import type { PortfolioContent } from "../content/portfolioTypes";
 import { ProfileImage } from "./ProfileImage";
@@ -9,6 +11,7 @@ import { PdfDownloadButton } from "./PdfDownloadButton";
 ------------------------------------------ */
 export default function LandingPage(): React.ReactElement {
   const { content, loading } = usePortfolioContent();
+  const showcases = useQuery(api.showcases.listActive) || [];
 
   return (
     <div className="lp-root">
@@ -16,7 +19,7 @@ export default function LandingPage(): React.ReactElement {
       <div className="lp-scroll">
         <div className="lp-paper" id="resume-paper">
           <PdfDownloadButton paperId="resume-paper" />
-          <ResumeContent content={content} imageLoading={loading} />
+          <ResumeContent content={content} imageLoading={loading} showcases={showcases} />
         </div>
       </div>
     </div>
@@ -29,9 +32,11 @@ export default function LandingPage(): React.ReactElement {
 function ResumeContent({
   content,
   imageLoading,
+  showcases,
 }: {
   content: PortfolioContent;
   imageLoading: boolean;
+  showcases: Array<{ name: string; slug: string }>;
 }): React.ReactElement {
   return (
     <>
@@ -114,35 +119,15 @@ function ResumeContent({
       <section className="rp-section">
         <h2 className="rp-sh">PROJECTS</h2>
 
-        {content.projects.featured.map((project) => (
-          <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
-            <div className="rp-job">
-              <div className="rp-job__head">
-                <strong>
-                  {project.demoSlug ? (
-                    <a href={`#project/${project.demoSlug}`} className="rp-project-link">
-                      {project.name}
-                    </a>
-                  ) : (
-                    project.name
-                  )}
-                </strong>
-                <span className="rp-date">{project.period}</span>
-              </div>
-              <p className="rp-job__stack">{project.stack}</p>
-              <p className="rp-body-sm">{project.description}</p>
-            </div>
-          </MysteryHotspot>
-        ))}
-
-        <div className="rp-two-col-sm">
-          {content.projects.compact.map((project) => (
+        {content.projects.featured.map((project) => {
+          const sc = showcases.find((s) => project.name.includes(s.name) || s.name.includes(project.name));
+          return (
             <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
               <div className="rp-job">
                 <div className="rp-job__head">
                   <strong>
-                    {project.demoSlug ? (
-                      <a href={`#project/${project.demoSlug}`} className="rp-project-link">
+                    {sc ? (
+                      <a href={`#project/${sc.slug}`} className="rp-project-link">
                         {project.name}
                       </a>
                     ) : (
@@ -155,7 +140,32 @@ function ResumeContent({
                 <p className="rp-body-sm">{project.description}</p>
               </div>
             </MysteryHotspot>
-          ))}
+          );
+        })}
+
+        <div className="rp-two-col-sm">
+          {content.projects.compact.map((project) => {
+            const sc = showcases.find((s) => project.name.includes(s.name) || s.name.includes(project.name));
+            return (
+              <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
+                <div className="rp-job">
+                  <div className="rp-job__head">
+                    <strong>
+                      {sc ? (
+                        <a href={`#project/${sc.slug}`} className="rp-project-link">
+                          {project.name}
+                        </a>
+                      ) : (
+                        project.name
+                      )}
+                    </strong>
+                    <span className="rp-date">{project.period}</span>
+                  </div>
+                  <p className="rp-body-sm">{project.description}</p>
+                </div>
+              </MysteryHotspot>
+            );
+          })}
         </div>
       </section>
     </>

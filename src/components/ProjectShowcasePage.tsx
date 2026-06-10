@@ -1,27 +1,24 @@
-import React from "react";
-
-interface ProjectRegistryEntry {
-  slug: string;
-  name: string;
-  url: string;
-}
-
-const PROJECT_REGISTRY: Record<string, ProjectRegistryEntry> = {
-  luxurious: {
-    slug: "luxurious",
-    name: "Luxurious Workspace Portal",
-    url: "https://luxurious-demo.vercel.app", // Adjust if there's a specific deployed URL
-  },
-};
+import { useQuery } from "convex/react";
+import { Loader2 } from "lucide-react";
+import { api } from "../../convex/_generated/api";
 
 export function ProjectShowcasePage({ slug }: { slug: string }): React.ReactElement {
-  const project = PROJECT_REGISTRY[slug];
+  const project = useQuery(api.showcases.getBySlug, { slug });
 
-  if (!project) {
+  if (project === undefined) {
+    return (
+      <div className="showcase-not-found">
+        <Loader2 className="pdf-dl-btn__spinner" size={32} />
+        <p style={{ marginTop: "1rem" }}>Loading project showcase...</p>
+      </div>
+    );
+  }
+
+  if (project === null) {
     return (
       <div className="showcase-not-found">
         <h1>Project Not Found</h1>
-        <p>The project "{slug}" does not exist in the registry.</p>
+        <p>The project "{slug}" does not exist or is inactive.</p>
         <button onClick={() => (window.location.hash = "")}>← Back to Portfolio</button>
       </div>
     );
@@ -48,6 +45,11 @@ export function ProjectShowcasePage({ slug }: { slug: string }): React.ReactElem
           Open in New Tab ↗
         </a>
       </header>
+      {project.description && (
+        <div style={{ padding: "0.5rem 1.5rem", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", fontSize: "0.875rem", color: "#475569" }}>
+          {project.description}
+        </div>
+      )}
       <iframe
         src={project.url}
         className="showcase-iframe"

@@ -97,4 +97,18 @@ export default defineSchema({
     safeDetails: v.string(),
     createdAt: v.number(),
   }).index("by_createdAt", ["createdAt"]),
+  projectShowcases: defineTable({
+    slug: v.string(),
+    name: v.string(),
+    url: v.string(),
+    description: v.string(),
+    stack: v.string(),
+    thumbnailUrl: v.optional(v.string()),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_isActive", ["isActive"]),
 });

@@ -15,6 +15,7 @@ import type { ZoneConfig } from "./game/data/svZones";
 import initGame, { getGameInstance } from "./initGame";
 import AdminPage from "./components/AdminPage";
 import { HistoryDetailPage, HistoryPage } from "./components/HistoryPage";
+import { ShowcaseManager } from "./components/ShowcaseManager";
 import { ProjectShowcasePage } from "./components/ProjectShowcasePage";
 import { ResumeAiChat } from "./components/ai/ResumeAiChat";
 import { usePortfolioContent } from "./content/PortfolioContentProvider";
@@ -73,6 +74,9 @@ export default function ReactUI(): React.ReactElement {
   }
   if (lowerHash === "#admin/history") {
     return <HistoryPage />;
+  }
+  if (lowerHash === "#admin/showcases") {
+    return <ShowcaseManager />;
   }
   if (lowerHash.startsWith("#admin/history/")) {
     const revisionId = hash.slice("#admin/history/".length);

@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as addLuxuriousProject from "../addLuxuriousProject.js";
 import type * as admin from "../admin.js";
 import type * as aiAgent from "../aiAgent.js";
 import type * as aiContext from "../aiContext.js";
@@ -19,6 +18,8 @@ import type * as defaultPortfolio from "../defaultPortfolio.js";
 import type * as portfolio from "../portfolio.js";
 import type * as seed from "../seed.js";
 import type * as seedMystery from "../seedMystery.js";
+import type * as seedShowcases from "../seedShowcases.js";
+import type * as showcases from "../showcases.js";
 
 import type {
   ApiFromModules,
@@ -27,7 +28,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  addLuxuriousProject: typeof addLuxuriousProject;
   admin: typeof admin;
   aiAgent: typeof aiAgent;
   aiContext: typeof aiContext;
@@ -38,6 +38,8 @@ declare const fullApi: ApiFromModules<{
   portfolio: typeof portfolio;
   seed: typeof seed;
   seedMystery: typeof seedMystery;
+  seedShowcases: typeof seedShowcases;
+  showcases: typeof showcases;
 }>;
 
 /**

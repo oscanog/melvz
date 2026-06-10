@@ -76,7 +76,6 @@ export const defaultPortfolio = {
         stack: "React 19, Vite 8, Convex, Tailwind CSS 4, @xyflow/react, Leaflet",
         description:
           "Real-time organization workspace companion featuring an interactive canvas-based org chart, dense data dashboards, and role-gated admin management toolsets built with strict visual and state parity to its mobile counterpart.",
-        demoSlug: "luxurious",
       },
     ],
     compact: [
