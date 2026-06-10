@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as addLuxuriousProject from "../addLuxuriousProject.js";
 import type * as admin from "../admin.js";
 import type * as aiAgent from "../aiAgent.js";
 import type * as aiContext from "../aiContext.js";
@@ -26,6 +27,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  addLuxuriousProject: typeof addLuxuriousProject;
   admin: typeof admin;
   aiAgent: typeof aiAgent;
   aiContext: typeof aiContext;

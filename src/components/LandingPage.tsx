@@ -118,7 +118,15 @@ function ResumeContent({
           <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
             <div className="rp-job">
               <div className="rp-job__head">
-                <strong>{project.name}</strong>
+                <strong>
+                  {project.demoSlug ? (
+                    <a href={`#project/${project.demoSlug}`} className="rp-project-link">
+                      {project.name}
+                    </a>
+                  ) : (
+                    project.name
+                  )}
+                </strong>
                 <span className="rp-date">{project.period}</span>
               </div>
               <p className="rp-job__stack">{project.stack}</p>
@@ -132,7 +140,15 @@ function ResumeContent({
             <MysteryHotspot key={`${project.name}-${project.period}`} lore={project.mysteryLore}>
               <div className="rp-job">
                 <div className="rp-job__head">
-                  <strong>{project.name}</strong>
+                  <strong>
+                    {project.demoSlug ? (
+                      <a href={`#project/${project.demoSlug}`} className="rp-project-link">
+                        {project.name}
+                      </a>
+                    ) : (
+                      project.name
+                    )}
+                  </strong>
                   <span className="rp-date">{project.period}</span>
                 </div>
                 <p className="rp-job__stack">{project.stack}</p>

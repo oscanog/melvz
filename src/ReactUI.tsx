@@ -15,6 +15,7 @@ import type { ZoneConfig } from "./game/data/svZones";
 import initGame, { getGameInstance } from "./initGame";
 import AdminPage from "./components/AdminPage";
 import { HistoryDetailPage, HistoryPage } from "./components/HistoryPage";
+import { ProjectShowcasePage } from "./components/ProjectShowcasePage";
 import { ResumeAiChat } from "./components/ai/ResumeAiChat";
 import { usePortfolioContent } from "./content/PortfolioContentProvider";
 import { getZoneMap } from "./content/portfolioSelectors";
@@ -76,6 +77,10 @@ export default function ReactUI(): React.ReactElement {
   if (lowerHash.startsWith("#admin/history/")) {
     const revisionId = hash.slice("#admin/history/".length);
     return <HistoryDetailPage revisionId={revisionId} />;
+  }
+  if (lowerHash.startsWith("#project/")) {
+    const slug = lowerHash.slice("#project/".length);
+    return <ProjectShowcasePage slug={slug} />;
   }
 
   // Show landing page until game phase is active

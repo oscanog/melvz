@@ -70,6 +70,14 @@ export const defaultPortfolio = {
         description:
           "Architected a government-grade financial planning ecosystem with 4-tier hierarchical allocation, RBAC security, and zero-downtime migration from Convex to PostgreSQL.",
       },
+      {
+        name: "Luxurious (Luxurious Workspace Portal)",
+        period: "2026",
+        stack: "React 19, Vite 8, Convex, Tailwind CSS 4, @xyflow/react, Leaflet",
+        description:
+          "Real-time organization workspace companion featuring an interactive canvas-based org chart, dense data dashboards, and role-gated admin management toolsets built with strict visual and state parity to its mobile counterpart.",
+        demoSlug: "luxurious",
+      },
     ],
     compact: [
       {
