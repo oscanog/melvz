@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Save, X, LogOut, Layout, Loader2 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { AdminGate } from "./AdminGate";
@@ -20,12 +20,12 @@ type ShowcaseDoc = {
 export function ShowcaseManager() {
   return (
     <AdminGate loginMessage="Login to manage project showcases.">
-      {({ sessionToken }) => <ShowcaseManagerInner sessionToken={sessionToken} />}
+      {({ sessionToken, logout }) => <ShowcaseManagerInner sessionToken={sessionToken} logout={logout} />}
     </AdminGate>
   );
 }
 
-function ShowcaseManagerInner({ sessionToken }: { sessionToken: string }) {
+function ShowcaseManagerInner({ sessionToken, logout }: { sessionToken: string; logout: () => void }) {
   const showcases = useQuery(api.showcases.listAll, { adminToken: sessionToken });
   const upsert = useMutation(api.showcases.upsert);
   const remove = useMutation(api.showcases.remove);
@@ -96,64 +96,114 @@ function ShowcaseManagerInner({ sessionToken }: { sessionToken: string }) {
   };
 
   return (
-    <main className="admin-root">
-      <header className="admin-history-header">
-        <button
-          className="admin-secondary-button"
-          onClick={() => (window.location.hash = "#admin")}
-        >
-          <ArrowLeft size={18} /> Back to Editor
-        </button>
+    <main className="inline-admin-root admin-history-root">
+      <header className="inline-admin-bar admin-history-topbar">
         <div>
-          <h1 className="admin-history-header__title">Project Showcases</h1>
-          <p className="admin-history-header__subtitle">
-            Manage live iframe demos for your portfolio.
-          </p>
+          <p className="admin-eyebrow">Portfolio Admin</p>
+          <h1>Project Showcases</h1>
         </div>
-        <button
-          className="admin-primary-button"
-          onClick={() => handleEdit()}
-        >
-          <Plus size={18} /> Add Showcase
-        </button>
+        <div className="inline-admin-actions">
+          <button className="admin-primary-button" onClick={() => handleEdit()}>
+            <Plus size={18} /> Add Showcase
+          </button>
+          <a className="admin-secondary-button" href="/#admin">
+            Editor
+          </a>
+          <button className="admin-secondary-button" type="button" onClick={logout}>
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
       </header>
 
-      <section className="admin-history-content showcase-admin-content">
-        {showcases === undefined ? (
-          <p>Loading showcases...</p>
-        ) : showcases.length === 0 ? (
-          <p className="admin-history-empty">No showcases found. Create one!</p>
-        ) : (
-          <div className="showcase-list">
-            {showcases.map((sc) => (
-              <div key={sc._id} className={`showcase-item ${!sc.isActive ? "showcase-item--inactive" : ""}`}>
-                <div className="showcase-item__info">
-                  <strong>{sc.name}</strong>
-                  <span className="showcase-item__slug">/{sc.slug}</span>
-                  <a href={sc.url} target="_blank" rel="noreferrer" className="showcase-item__url">
-                    {sc.url}
-                  </a>
-                </div>
-                <div className="showcase-item__actions">
-                  <button
-                    className="icon-btn"
-                    title={sc.isActive ? "Deactivate" : "Activate"}
-                    onClick={() => toggleActive({ adminToken: sessionToken, id: sc._id })}
-                  >
-                    {sc.isActive ? <Eye size={18} /> : <EyeOff size={18} />}
-                  </button>
-                  <button className="icon-btn" title="Edit" onClick={() => handleEdit(sc)}>
-                    <Edit size={18} />
-                  </button>
-                  <button className="icon-btn icon-btn--danger" title="Delete" onClick={() => handleDelete(sc._id)}>
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
+      <div className="admin-history-scroll">
+        <section className="admin-history-page">
+          <div className="admin-history-heading">
+            <div>
+              <p className="admin-eyebrow">Live Demos</p>
+              <h2>Manage Showcases</h2>
+            </div>
+            <span className="admin-history-branch">
+              <Layout size={16} />
+              portfolio
+            </span>
           </div>
-        )}
-      </section>
+
+          {showcases === undefined ? (
+            <div className="admin-history-empty">
+              <Loader2 size={18} /> Loading showcases...
+            </div>
+          ) : showcases.length === 0 ? (
+            <div className="admin-history-empty">No showcases found. Create one!</div>
+          ) : (
+            <section className="admin-history-group">
+              <div className="admin-history-date">
+                <span className="admin-history-node" />
+                <span>Active and Inactive Projects</span>
+              </div>
+              <div className="admin-history-card">
+                {showcases.map((sc) => (
+                  <article className="admin-history-row" key={sc._id} style={{ opacity: sc.isActive ? 1 : 0.6 }}>
+                    <div className="admin-history-main">
+                      <h3>
+                        <button
+                          className="admin-history-title-button"
+                          type="button"
+                          onClick={() => handleEdit(sc)}
+                        >
+                          {sc.name}
+                        </button>
+                      </h3>
+                      <p>
+                        <span className="admin-history-avatar">S</span>
+                        /{sc.slug}
+                        <span className={`admin-history-kind admin-history-kind--${sc.isActive ? "save" : "rollback"}`}>
+                          {sc.isActive ? "active" : "inactive"}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="admin-history-actions">
+                      <a
+                        href={sc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="admin-history-hash"
+                        title="Open Demo URL"
+                      >
+                        Visit
+                      </a>
+                      <button
+                        className="admin-icon-button"
+                        type="button"
+                        title={sc.isActive ? "Deactivate" : "Activate"}
+                        onClick={() => toggleActive({ adminToken: sessionToken, id: sc._id })}
+                      >
+                        {sc.isActive ? <Eye size={16} /> : <EyeOff size={16} />}
+                      </button>
+                      <button
+                        className="admin-icon-button"
+                        type="button"
+                        title="Edit"
+                        onClick={() => handleEdit(sc)}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        className="admin-icon-button admin-icon-button--danger"
+                        type="button"
+                        title="Delete"
+                        onClick={() => handleDelete(sc._id)}
+                      >
+                        <Trash2 size={16} color="#ef4444" />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+        </section>
+      </div>
 
       {editingId && (
         <div className="showcase-modal-overlay">
